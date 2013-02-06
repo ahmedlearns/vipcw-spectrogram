@@ -7,16 +7,17 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {   int i=0,j;
    
     int lSize;
-    FILE * f = fopen("pianoStereo.wav", "r"); //opening the 2 channels wave file
-    FILE * f1 = fopen ("pianoMono.wav", "wb"); // this is  the file where the one channel sound file will be saved
-    aFILE * f2 = fopen ("pianoSample.txt", "w"); // a text file that will have the left channel sound data,
+    FILE * f = fopen("wavs/test.wav", "r"); //opening the 2 channels wave file
+    FILE * f1 = fopen ("testMono.wav", "wb"); // this is  the file where the one channel sound file will be saved
+    FILE * f2 = fopen ("testSample.txt", "w"); // a text file that will have the left channel sound data,
                                                  //just to see what we're dealing with
-    FILE * f3 = fopen ("pianoSample.csv", "w");  // an excel file that have the data to use in matLab
+    FILE * f3 = fopen ("testSample.csv", "w");  // an excel file that have the data to use in matLab
     
     /* Find size of wav file */
     fseek (f , 0 , SEEK_END);   // set current position of the stream to the end of the file
