@@ -9,6 +9,8 @@ domain, we can use a python script to show the spectrogram.
 
 Understanding FFT's: http://www.youtube.com/watch?v=H144ipQa22Q
 
+WaveFormat: https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
+
 To run fft.c:
 
 Change to the directory for the shared folder CW
