@@ -1,15 +1,27 @@
 vipcw-spectrogram
 =================
 
+Make library object: "gcc -lm -o fft.o -c fft.c"
+To compile: "gcc fft_testing.c fft.o -o fft_testing -lm"
+
 This project will sample a .wav file using an fft and afterwardsc
 represent it in a graphical manner to be used on a Raspberry Pi.
 
 After using an fft to transform a signal from the time domain to the frequency
 domain, we can use a python script to show the spectrogram. 
 
+FFT Calculator: http://www.random-science-tools.com/maths/FFT.htm
+
+FFT Test Vectors: http://www.sccon.ca/sccon/fft/fft3.htm
+
 Understanding FFT's: http://www.youtube.com/watch?v=H144ipQa22Q
 
 WaveFormat: https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
+
+FFT basics:
+http://www.dspguru.com/dsp/faqs/fft
+http://www.dspguide.com/ch12/2.htm
+
 
 To run fft.c:
 

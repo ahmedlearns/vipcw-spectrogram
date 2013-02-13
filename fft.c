@@ -40,7 +40,7 @@ void fft(int N, double (*x)[2], double (*X)[2]){                            /* o
   /* Calculate FFT by a recursion. */
   fft_rec(N, 0, 1, x, X, XX);
 
-	printf("I'm in fft.c\n");
+	// printf("I'm in fft.c\n");
 
   /* Free memory. */
   free(XX);

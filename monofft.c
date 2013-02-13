@@ -16,6 +16,7 @@
 int main()
 {
     int i=0,j,k,l=0;
+    // CHANGE THIS FROM 16K?
     int N = 2;                    /* number of points in FFT */
     double (*X)[2];          		 /* pointer to frequency-domain samples */   /* double */
     double x[N][2];             /* double */
