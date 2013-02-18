@@ -16,8 +16,7 @@
 int main()
 {
     int i=0,j,k,l=0;
-    // CHANGE THIS FROM 16K?
-    int N = 2;                    /* number of points in FFT */
+    int N = 256;                    /* number of points in FFT */
     double (*X)[2];          		 /* pointer to frequency-domain samples */   /* double */
     double x[N][2];             /* double */
     double mag, min, max, mag_norm;                 /* double */
@@ -28,11 +27,11 @@ int main()
     }
 
     int lSize;
-    FILE * f = fopen("wavs/sin.wav", "r"); //opening the 2 channels wave file
-    FILE * f1 = fopen ("sinMono.wav", "wb"); // this is  the file where the one channel sound file will be saved
-    FILE * f2 = fopen ("sinFFT.txt", "w"); // a text file that will have the left channel sound data,
+    FILE * f = fopen("wavs/pianoShort.wav", "r"); //opening the 2 channels wave file
+    FILE * f1 = fopen ("pianoMono.wav", "wb"); // this is  the file where the one channel sound file will be saved
+    FILE * f2 = fopen ("pianoFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
-    //FILE * f3 = fopen ("pianoSample.csv", "w");  // an excel file that have the data to use in matLab
+    FILE * f3 = fopen ("pianoSample.csv", "w");  // an excel file that have the data to use in matLab
     fseek (f , 0 , SEEK_END);
     lSize = ftell (f);
     rewind (f);
@@ -69,7 +68,7 @@ int main()
         x[k][0]=leftVa;
         j++;
         k++;
-        printf("k is %d and N is %d\n", k, N);
+        //~ printf("k is %d and N is %d\n", k, N);
         if (k==N) {
             fft(N, x, X);
             min = 0;
@@ -91,6 +90,7 @@ int main()
                 mag_norm = (mag - min)/(max - min);
 
                 fprintf(f2,"%12f,\n", mag_norm);
+                fprintf(f3,"%12f,\n", mag_norm);
             }
             k=0;
         }
@@ -108,7 +108,7 @@ int main()
     fclose (f);
     fclose (f1);
     fclose (f2);
-    // fclose (f3);
+    fclose (f3);
     free(X);
     return 0;
 }

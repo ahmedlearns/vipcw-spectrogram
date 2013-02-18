@@ -20,11 +20,19 @@ int main(){
 		//~ i++;
 	//~ }
 	
-	printf("Test 2..\n");
+	//~ printf("Test 2..\n");
+	//~ i = 0;
+	//~ while(i<N){
+		//~ x[i][0] = x[i][1] = 0;
+		//~ if(i == 1) x[i][0] = 1;
+		//~ i++;
+	//~ }
+	
+	printf("Test 3..\n");
 	i = 0;
-	while(i<N){
-		x[i][0] = x[i][1] = 0;
-		if(i == 1) x[i][0] = 1;
+	while(i < N){
+		x[i][0] = 1;
+		x[i][1] = 0;
 		i++;
 	}
     
