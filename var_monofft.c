@@ -31,7 +31,9 @@ int main(int argc, char* argv[])
     FILE * f1 = fopen (argv[2], "wb"); // this is  the file where the one channel sound file will be saved
     FILE * f2 = fopen (argv[3], "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
-    if(argc >= 5) FILE * f3 = fopen (argv[4], "w");  // an excel file that have the data to use in matLab
+    FILE * f3;
+    if(argc >= 5) 
+		f3 = fopen (argv[4], "w");  // an excel file that have the data to use in matLab
     fseek (f , 0 , SEEK_END);
     lSize = ftell (f);
     rewind (f);
