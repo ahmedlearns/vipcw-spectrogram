@@ -4,6 +4,8 @@ vipcw-spectrogram
 Make library object: "gcc -lm -o fft.o -c fft.c"
 To compile test: "gcc fft_testing.c fft.o -o fft_testing -lm"
 Compile monofft: "gcc monofft.c fft.o -o runMonofft -lm"
+Running the variable monofft:
+	"runVarMonofft wavs/filetotransform.wav monoFile.wav leftChannelData.txt 4Matlab.csv"
 
 
 This project will sample a .wav file using an fft and afterwardsc
