@@ -2,7 +2,7 @@ import sys
 from scipy.io.wavfile import read,write
 from pylab import plot,show,subplot,specgram, title, ylim
 
-rate,data = read('chirp.wav') # reading
+rate,data = read(sys.argv[1]) # reading
 
 Fs = rate
 NFFT = int(Fs*0.01)	# 10ms window

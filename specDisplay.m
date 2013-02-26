@@ -7,19 +7,19 @@
 % 
 % */
 
-[num, ~, ~]= xlsread('pianoSample.csv');
+[num, ~, ~]= xlsread('chirpRaw.csv');
 i=0;
 j=1;
 k=256;
 numRaw=num; %// numRaw will be used to for the spectrogram in matLab to test
-while(i<720)
-   num(j:k)=fft( num(j:k),256);
-   j=j+256;
-   k=k+256;
-   i=i+1;
-end
-num=abs(num);
-num=num/(max(num));
+% while(i<720)
+%    num(j:k)=fft( num(j:k),256);
+%    j=j+256;
+%    k=k+256;
+%    i=i+1;
+% end
+% num=abs(num);
+% num=num/(max(num));
     
 % file = fopen('Shashank.txt', 'w');
 % i=0;
@@ -30,4 +30,5 @@ num=num/(max(num));
 %    i=i+1;
 % end
 
+title('Chirp 10-500 Hz');
 spectrogram(numRaw,256,[],[],44100,'yaxis');
