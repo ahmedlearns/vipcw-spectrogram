@@ -5,6 +5,9 @@ GTK+ Image Display resources:
 http://www.cs.dartmouth.edu/~xy/cs23/gtk.html
 http://www.gtk.org/api/2.6/gtk/GtkImage.html
 
+To install (including documentation): sudo apt-get install libgtk-3-dev libgtk-3-doc
+On how to compile: zetcode.com/tutorials/gtktutorial/introduction/
+
 Make library object: "gcc -lm -o fft.o -c fft.c"
 
 To compile test: "gcc fft_testing.c fft.o -o fft_testing -lm"
