@@ -1,8 +1,13 @@
-/* A file to structurally send fft data through a socket 
+/* fft_socket_header.h
+ *
+ * A file to structurally send fft data through a socket 
  *
  * To read in an FFT, you will first need to read in the header portion (the struct below)
  * The second read will be the fft_data and the size of the read will be dependent on the 
  * 	ptsPerFFT parameter of the previous read.
+ * 
+ * Author: Ahmed Ismail
+ * Version: 1.0 2013-3-20
  */
 
 #include <stdlib.h>
