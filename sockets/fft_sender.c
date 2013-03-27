@@ -14,12 +14,13 @@
 
 struct fft_header * hdr;
 
-void init_fft(int bytesToNextHeader, int ptsPerFFT, 
+void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 		struct timeval timestamp, int sampFreq)
 {
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
 	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
 	hdr->ptsPerFFT = ptsPerFFT;
+	hdr->samplesToNextFFT = samplesToNextFFT;
 	updateTime(timestamp);
 	hdr->sampFreq = sampFreq;
 

@@ -16,7 +16,8 @@
 struct fft_header{
 	int constSync = 0xACFDFFBC;	// sync to next header
 	int bytesToNextHeader;	// total amount of space (header+data)
-	int ptsPerFFT;			// number of points per FFT (sizeof(fft_data) = float * ptsPerFFT
+	int samplesToNextFFT;	// Num samples to the start of the next FFT
+	int ptsPerFFT;			// number of points per FFT 
 	struct timeval timestamp;	// see getimeofday -> "man gettimeofday"
 	int sampFreq;			// sampling frequency
 }
