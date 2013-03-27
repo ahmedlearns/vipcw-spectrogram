@@ -14,7 +14,9 @@
 #include <sys/time.h>
 
 struct fft_header{
-	int ptsPerFFT;			// number of points per FFT
+	int constSync = 0xACFDFFBC;	// sync to next header
+	int bytesToNextHeader;	// total amount of space (header+data)
+	int ptsPerFFT;			// number of points per FFT (sizeof(fft_data) = float * ptsPerFFT
 	struct timeval timestamp;	// see getimeofday -> "man gettimeofday"
 	int sampFreq;			// sampling frequency
 }

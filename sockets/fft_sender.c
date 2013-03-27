@@ -14,22 +14,22 @@
 
 struct fft_header * hdr;
 
-void init_fft(int ptsPerFFT, struct timeval timestamp, int sampFreq)
+void init_fft(int bytesToNextHeader, int ptsPerFFT, 
+		struct timeval timestamp, int sampFreq)
 {
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
+	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
 	hdr->ptsPerFFT = ptsPerFFT;
-	hdr->timestamp = timestamp;
+	updateTime(timestamp);
 	hdr->sampFreq = sampFreq;
 
 	// RETURN int ERROR CODES
 }
 
-// return buffer with fft data with header coming before it
-struct fft_header * pack_fft(float * data){
-	// Place header before the data;
-	struct fft_header * header = (struct fft_header*) data) -1;
-	return header = hdr;
+void updateTime(struct timeval timestamp){
+	gettimeofday(hdr->timestamp, NULL);
 }
+
 
 
 
