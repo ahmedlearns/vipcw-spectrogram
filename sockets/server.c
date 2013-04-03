@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
      int sockfd, newsockfd, portno;
      socklen_t clilen;
-     char buffer[256];
+     //char buffer[256];
      struct sockaddr_in serv_addr, cli_addr;
      int n;
      if (argc < 2)
@@ -44,13 +44,15 @@ int main(int argc, char *argv[])
      newsockfd = accept(sockfd,                  (struct sockaddr *) &cli_addr,                  &clilen);
      if (newsockfd < 0)
            error("ERROR on accept"); 
-    bzero(buffer,256); 
+    /*
+	bzero(buffer,256); 
     n = read(newsockfd,buffer,255); 
     if (n < 0)
 		error("ERROR reading from socket");
+*/
      //printf("Here is the message: %s\n",buffer);
 //////////////////////////////////////////////////////////////////
-	n = read(newsockfd, (char*) header, sizeof(struct fft_header));
+	n = read(newsockfd, &header, sizeof(struct fft_header));
 	if (n < 0)
 		error("ERROR reading from socket");
 		
@@ -62,7 +64,7 @@ int main(int argc, char *argv[])
 	int i = 0;
 	printf("ptsPerFFT: %d\n", header.ptsPerFFT);
 	for(i = 0; i < header.ptsPerFFT; i++)
-		printf("%d, %f\n", i, fbuffer[i]);
+		printf("%d, %f\n", i+1, fbuffer[i]);
 	
 	// FILE * f =fopen("data.txt","w");
 	// fwrite(buffer,1,255,f);

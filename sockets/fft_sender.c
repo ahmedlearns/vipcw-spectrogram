@@ -9,15 +9,37 @@
 
 #include <stdlib.h>
 #include <sys/time.h>
+#include "fft_sender.h"
 
 #include "fft_socket_header.h"
 
-struct fft_header * hdr;
+/*
+struct fft_header hdr;
 
 void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
-		/*struct timeval timestamp,*/ int sampFreq)
+		 int sampFreq)
 {
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
+	hdr.constSync = 0xACFDFFBC;
+	hdr.bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
+	hdr.ptsPerFFT = ptsPerFFT;
+	hdr.samplesToNextFFT = samplesToNextFFT;
+	hdr.sampFreq = sampFreq;
+
+	// RETURN int ERROR CODES
+}
+*/
+
+
+struct fft_header * hdr;
+
+//void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
+//		/*struct timeval timestamp,*/ int sampFreq)
+void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
+			 int sampFreq)
+{
+	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
+	hdr->constSync = 0xACFDFFBC;
 	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
 	hdr->ptsPerFFT = ptsPerFFT;
 	hdr->samplesToNextFFT = samplesToNextFFT;
@@ -26,6 +48,8 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
 
 	// RETURN int ERROR CODES
 }
+
+
 
 // void updateTime(struct timeval timestamp){
 	// gettimeofday(hdr->timestamp, NULL);

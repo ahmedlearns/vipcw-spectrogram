@@ -11,6 +11,8 @@
 #include "fft_socket_header.h"
 #include "fft_sender.h"
 
+extern struct fft_header* hdr;
+
 void error(const char *msg)
 {
     perror(msg);
@@ -26,7 +28,7 @@ int main(int argc, char *argv[])
 	///////////////////////////////////////////////////////////////////////////////////
 	int bytesToNextHeader = 5;	// total amount of space (header+data)
 	int samplesToNextFFT = 3;	// Num samples to the start of the next FFT
-	int ptsPerFFT = 2;			// number of points per FFT 
+	int ptsPerFFT = 20;		// number of points per FFT 
 	int sampFreq = 4;
 	
 	char fft_data[ptsPerFFT * sizeof(float)];
