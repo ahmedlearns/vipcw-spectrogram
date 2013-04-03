@@ -18,6 +18,6 @@ struct fft_header{
 	int bytesToNextHeader;	// total amount of space (header+data)
 	int samplesToNextFFT;	// Num samples to the start of the next FFT
 	int ptsPerFFT;			// number of points per FFT 
-	struct timeval timestamp;	// see getimeofday -> "man gettimeofday"
+	//struct timeval timestamp;	// see getimeofday -> "man gettimeofday"
 	int sampFreq;			// sampling frequency
 }

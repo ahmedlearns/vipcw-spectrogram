@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <sys/time.h>
 
 #include "fft_socket_header.h"
 #include "fft_sender.h"
@@ -28,16 +29,16 @@ int main(int argc, char *argv[])
 	int ptsPerFFT = 2;			// number of points per FFT 
 	int sampFreq = 4;
 	
-	char fft_data[ptsPerFFT];
-	init_fft();
+	char fft_data[ptsPerFFT * sizeof(float)];
+	init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq);
 	int header_len = sizeof(struct fft_header);
 	
 	// Place header in the char array
-	char buffer[header_len];
-	int i;
-	for(char i = 0; i < header_len; i++){
-		buffer[i] = hdr[i];
-	}
+	// char buffer[header_len];
+	// char i;
+	// for(char i = 0; i < header_len; i++){
+		// buffer[i] = hdr[i];
+	// }
 	
 	///////////////////////////////////////////////////////////////////////////////////
 
@@ -69,24 +70,30 @@ int main(int argc, char *argv[])
     fgets(buffer,255,stdin);
 	*/
     ///////////////////////////////////////////////////////////////////////////////////////////
-	n = write(sockfd, buffer, strlen(buffer));
+	n = write(sockfd, (char*) hdr, header_len);
     if (n < 0) 
          error("ERROR writing to socket");
-    bzero(buffer, header_len);
+    // bzero(buffer, header_len);
 	
-    n = read(sockfd, buffer, 255);
-    if (n < 0) 
-         error("ERROR reading from socket");
-    printf("%s\n",buffer);
+    // n = read(sockfd, buffer, 255);
+    // if (n < 0) 
+         // error("ERROR reading from socket");
+    // printf("%s\n",buffer);
 	
-	FILE * f =fopen("data.txt","w");
-	fwrite(buffer, 1, 255, f);
-	fclose(f);
+	// FILE * f =fopen("data.txt","w");
+	// fwrite(fft_data, 1, 255, f);
+	// fclose(f);
 	
-	n = write(sockfd, fft_data, strlen(fft_data));
+	float fbuffer[256];
+	int i;
+	for(i = 0; i < 256; i++){
+		fbuffer[i] = 0.3*i;
+	}
+	
+	n = write(sockfd, fbuffer, 256 * sizeof(float));
     if (n < 0) 
          error("ERROR writing to socket");
-    bzero(fft_data, ptsPerFFT);
+    // bzero(fft_data, ptsPerFFT * sizeof(float));
 	///////////////////////////////////////////////////////////////////////////////////////////
     close(sockfd);
     return 0;
