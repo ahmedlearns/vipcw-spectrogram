@@ -6,6 +6,9 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#include "fft_sender.h"
+
 void error(const char *msg)
 {
     perror(msg);
