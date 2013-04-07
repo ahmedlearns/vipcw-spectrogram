@@ -7,7 +7,12 @@
  * Version: 1.0 2013-3-20
  */
 
+<<<<<<< HEAD
 // void init_fft(int, int, int, struct timeval, int);
 void init_fft(int, int, int, int);
+=======
+//void init_fft(int, int, int, /*struct timeval,*/ int);
+>>>>>>> e3ea269bb3288feba9aaae800563644008b827ce
 
-void updateTime(struct timeval);
+void init_fft(int, int, int, int) ;
+//void updateTime(struct timeval);
