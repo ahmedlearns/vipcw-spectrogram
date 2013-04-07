@@ -7,7 +7,6 @@
  * 	ptsPerFFT parameter of the previous read.
  * 
  * Author: Ahmed Ismail
- * Version: 1.0 2013-3-20
  */
 
 #include <stdlib.h>
@@ -23,9 +22,5 @@ struct fft_header{
 	int ptsPerFFT;			// number of points per FFT 
 	//struct timeval timestamp;	// see getimeofday -> "man gettimeofday"
 	int sampFreq;			// sampling frequency
-<<<<<<< HEAD
 	int endTrans;	// signal end of transmission (all data is sent)
 };
-=======
-};
->>>>>>> e3ea269bb3288feba9aaae800563644008b827ce

@@ -4,7 +4,6 @@
  * through a socket.
  * 
  * Author: Ahmed Ismail
- * Version: 1.0 2013-3-20
  */
 
 #include <stdlib.h>
@@ -13,30 +12,12 @@
 
 #include "fft_socket_header.h"
 
-/*
-struct fft_header hdr;
-
-void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
-		 int sampFreq)
-{
-	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
-	hdr.constSync = 0xACFDFFBC;
-	hdr.bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
-	hdr.ptsPerFFT = ptsPerFFT;
-	hdr.samplesToNextFFT = samplesToNextFFT;
-	hdr.sampFreq = sampFreq;
-
-	// RETURN int ERROR CODES
-}
-*/
-
-
 struct fft_header * hdr;
 
 //void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
-//		/*struct timeval timestamp,*/ int sampFreq)
+//		struct timeval timestamp, int sampFreq)
 void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
-			 int sampFreq)
+			 int sampFreq, int endTrans)
 {
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
 	hdr->constSync = 0xACFDFFBC;
@@ -45,7 +26,8 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
 	hdr->samplesToNextFFT = samplesToNextFFT;
 	//updateTime(timestamp);
 	hdr->sampFreq = sampFreq;
-	hdr->endTrans = 0xB58C982A;
+	// -1 when ongoing, 1 to signal end of transmission
+	hdr->endTrans = endTrans;
 
 	// RETURN int ERROR CODES
 }

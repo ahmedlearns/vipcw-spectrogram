@@ -19,7 +19,6 @@ void error(const char *msg)
 }
 int main(int argc, char *argv[])
 {
-<<<<<<< HEAD
     int sockfd, newsockfd, portno;
     socklen_t clilen;
     // char buffer[256];
@@ -30,6 +29,7 @@ int main(int argc, char *argv[])
      fprintf(stderr,"ERROR, no port provided\n");
      exit(1);
     }
+    /*
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
      error("ERROR opening socket");
@@ -42,71 +42,77 @@ int main(int argc, char *argv[])
            error("ERROR on binding");
     listen(sockfd,5);
     clilen = sizeof(cli_addr);
-    newsockfd = accept(sockfd,                  (struct sockaddr *) &cli_addr,                  &clilen);
+    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0)
        error("ERROR on accept"); 
+    */
+   
     // bzero(buffer,256); 
     //   n = read(newsockfd,buffer,255); 
     //   if (n < 0)
     // error("ERROR reading from socket");
     //printf("Here is the message: %s\n",buffer);
-
-=======
-     int sockfd, newsockfd, portno;
-     socklen_t clilen;
-     //char buffer[256];
-     struct sockaddr_in serv_addr, cli_addr;
-     int n;
-     if (argc < 2)
- {
-         fprintf(stderr,"ERROR, no port provided\n");
-         exit(1);
-     }
-     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-     if (sockfd < 0)
+//////////////////////////////////////////////////////////////////  
+    float fbuffer[256];
+    do{
+        
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0)
          error("ERROR opening socket");
-     bzero((char *) &serv_addr, sizeof(serv_addr));
-     portno = atoi(argv[1]);
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = INADDR_ANY; 
-    serv_addr.sin_port = htons(portno);
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,              sizeof(serv_addr)) < 0)
+        bzero((char *) &serv_addr, sizeof(serv_addr));
+        portno = atoi(argv[1]);
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = INADDR_ANY; 
+        serv_addr.sin_port = htons(portno);
+        if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
                error("ERROR on binding");
-     listen(sockfd,5);
-     clilen = sizeof(cli_addr);
-     newsockfd = accept(sockfd,                  (struct sockaddr *) &cli_addr,                  &clilen);
-     if (newsockfd < 0)
-           error("ERROR on accept"); 
-    /*
-	bzero(buffer,256); 
-    n = read(newsockfd,buffer,255); 
-    if (n < 0)
-		error("ERROR reading from socket");
-*/
-     //printf("Here is the message: %s\n",buffer);
->>>>>>> e3ea269bb3288feba9aaae800563644008b827ce
-//////////////////////////////////////////////////////////////////
-	n = read(newsockfd, &header, sizeof(struct fft_header));
+        listen(sockfd,5);
+        clilen = sizeof(cli_addr);
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        if (newsockfd < 0)
+           error("ERROR on accept");
+       
+        n = read(newsockfd, &header, sizeof(struct fft_header));
+        if (n < 0)
+            error("ERROR reading from socket");
+
+        printf("header.constSync is %X\n", header.constSync);
+        // printf("header_len is %d\n", sizeof(struct fft_header));
+
+        if(header.constSync != 0xACFDFFBC)
+            error("ERROR reading from socket, incorrect header placement\n");
+
+        n = read(newsockfd, (char *) fbuffer, header.ptsPerFFT * sizeof(float));
+        if (n < 0)
+            error("ERROR reading from socket");
+
+        int i = 0;
+        printf("ptsPerFFT: %d\n", header.ptsPerFFT);
+        for(i = 0; i < header.ptsPerFFT; i++)
+            printf("%d: %f\n", i+1, fbuffer[i]);
+
+        printf("header.endTrans is %d\n", header.endTrans);
+
+        close(newsockfd);
+        close(sockfd);
+    } while(1);
+   // } while(header.endTrans < 0);
+
+	/*
+    n = read(newsockfd, &header, sizeof(struct fft_header));
 	if (n < 0)
 		error("ERROR reading from socket");
 
     if(header.constSync != 0xACFDFFBC)
         error("ERROR reading from socket: Incorrect header placement\n");
-		
-	float fbuffer[256];
+	
+	
 	n = read(newsockfd, (char *) fbuffer, header.ptsPerFFT * sizeof(float));
 	if (n < 0)
 		error("ERROR reading from socket");
+	*/
 	
-	int i = 0;
-	printf("ptsPerFFT: %d\n", header.ptsPerFFT);
-	for(i = 0; i < header.ptsPerFFT; i++)
-<<<<<<< HEAD
-		printf("%d: %f\n", i+1, fbuffer[i]);
-=======
-		printf("%d, %f\n", i+1, fbuffer[i]);
->>>>>>> e3ea269bb3288feba9aaae800563644008b827ce
-	
+
 	// FILE * f =fopen("data.txt","w");
 	// fwrite(buffer,1,255,f);
 	// fclose(f);
@@ -114,7 +120,8 @@ int main(int argc, char *argv[])
 
      // n = write(newsockfd,"I got your message",18);
      // if (n < 0) error("ERROR writing to socket");
-     close(newsockfd);
-     close(sockfd);
+     
+     // close(newsockfd);
+     // close(sockfd);
      return 0;
  }

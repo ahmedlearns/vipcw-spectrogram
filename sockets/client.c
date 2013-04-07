@@ -25,18 +25,6 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-	///////////////////////////////////////////////////////////////////////////////////
-	int bytesToNextHeader = 5;	// total amount of space (header+data)
-	int samplesToNextFFT = 3;	// Num samples to the start of the next FFT
-	int ptsPerFFT = 20;			// number of points per FFT 
-	int sampFreq = 4;
-	
-	char fft_data[ptsPerFFT * sizeof(float)];
-	init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq);
-	int header_len = sizeof(struct fft_header);
-
-	///////////////////////////////////////////////////////////////////////////////////
-
     // char buffer[256];
     if (argc < 3) {
        fprintf(stderr,"usage %s hostname port\n", argv[0]);
@@ -64,16 +52,24 @@ int main(int argc, char *argv[])
     ///////////////////////////////////////////////////////////////////////////////////////////
     // char a[3] = {'a','a','a'};
     // n = write(sockfd, a, 3);
+
+    int bytesToNextHeader = 5;  // total amount of space (header+data)
+    int samplesToNextFFT = 3;   // Num samples to the start of the next FFT
+    int ptsPerFFT = 20;         // number of points per FFT 
+    int sampFreq = 4;
+    int endTrans = -1;
+    
+    char fft_data[ptsPerFFT * sizeof(float)];
+
+    init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq, endTrans);
+    int header_len = sizeof(struct fft_header);
+    
+    /*
     n = write(sockfd, (char *) hdr, header_len);
     if (n < 0) 
          error("ERROR writing to socket");
-    // bzero(buffer, header_len);
-	
-    // n = read(sockfd, buffer, 255);
-    // if (n < 0) 
-         // error("ERROR reading from socket");
-    // printf("%s\n",buffer);
-	
+    */
+
 	// FILE * f =fopen("data.txt","w");
 	// fwrite(fft_data, 1, 255, f);
 	// fclose(f);
@@ -83,11 +79,33 @@ int main(int argc, char *argv[])
 	for(i = 0; i < 256; i++){
 		fbuffer[i] = 0.3*i;
 	}
-	
+	/*
 	n = write(sockfd, fbuffer, 256 * sizeof(float));
     if (n < 0) 
          error("ERROR writing to socket");
-    // bzero(fft_data, ptsPerFFT * sizeof(float));
+    */
+
+    // printf("header_len is %d\n", header_len);
+
+    for(i = 0; i < 3; i++){
+        
+        init_fft(bytesToNextHeader++, samplesToNextFFT+=2, ptsPerFFT, sampFreq, 
+                    endTrans);
+        n = write(sockfd, (char *) hdr, header_len);
+        if (n < 0) 
+             error("ERROR writing to socket");
+        
+        for(i = 0; i < 256; i++){
+           fbuffer[i] = 0.3*i;
+        }
+        n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
+        if (n < 0) 
+             error("ERROR writing to socket");
+
+        if(i == 2) endTrans = 1;
+        printf("endTrans is %d\n", endTrans);
+    }
+
 	///////////////////////////////////////////////////////////////////////////////////////////
     
 
