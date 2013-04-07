@@ -11,6 +11,8 @@
 #include "fft_socket_header.h"
 #include "fft_sender.h"
 
+extern struct fft_header * hdr;
+
 void error(const char *msg)
 {
     perror(msg);
@@ -26,20 +28,13 @@ int main(int argc, char *argv[])
 	///////////////////////////////////////////////////////////////////////////////////
 	int bytesToNextHeader = 5;	// total amount of space (header+data)
 	int samplesToNextFFT = 3;	// Num samples to the start of the next FFT
-	int ptsPerFFT = 2;			// number of points per FFT 
+	int ptsPerFFT = 20;			// number of points per FFT 
 	int sampFreq = 4;
 	
 	char fft_data[ptsPerFFT * sizeof(float)];
 	init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq);
 	int header_len = sizeof(struct fft_header);
-	
-	// Place header in the char array
-	// char buffer[header_len];
-	// char i;
-	// for(char i = 0; i < header_len; i++){
-		// buffer[i] = hdr[i];
-	// }
-	
+
 	///////////////////////////////////////////////////////////////////////////////////
 
     // char buffer[256];
@@ -64,13 +59,12 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
-    /*
-	printf("Please enter the message: ");
-	bzero(buffer,256);
-    fgets(buffer,255,stdin);
-	*/
+    
+
     ///////////////////////////////////////////////////////////////////////////////////////////
-	n = write(sockfd, (char*) hdr, header_len);
+    // char a[3] = {'a','a','a'};
+    // n = write(sockfd, a, 3);
+    n = write(sockfd, (char *) hdr, header_len);
     if (n < 0) 
          error("ERROR writing to socket");
     // bzero(buffer, header_len);
@@ -95,6 +89,8 @@ int main(int argc, char *argv[])
          error("ERROR writing to socket");
     // bzero(fft_data, ptsPerFFT * sizeof(float));
 	///////////////////////////////////////////////////////////////////////////////////////////
+    
+
     close(sockfd);
     return 0;
 }

@@ -18,11 +18,13 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
 		/*struct timeval timestamp,*/ int sampFreq)
 {
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
+	hdr->constSync = 0xACFDFFBC;
 	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
 	hdr->ptsPerFFT = ptsPerFFT;
 	hdr->samplesToNextFFT = samplesToNextFFT;
 	//updateTime(timestamp);
 	hdr->sampFreq = sampFreq;
+	hdr->endTrans = 0xB58C982A;
 
 	// RETURN int ERROR CODES
 }
