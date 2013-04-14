@@ -90,7 +90,8 @@ int main(int argc, char *argv[])
 
     int bytesToNextHeader = 5;  // total amount of space (header+data)
     int samplesToNextFFT = 3;   // Num samples to the start of the next FFT
-    int ptsPerFFT = 20;         // number of points per FFT 
+    //int ptsPerFFT = 20;         // number of points per FFT 
+    srand(time(NULL)); int ptsPerFFT = (int) rand() % 20;         // number of points per FFT 
     int sampFreq = 4;
     int endTrans = -1;
     
@@ -124,6 +125,20 @@ int main(int argc, char *argv[])
 
     // DO WE WANT TO SEND THE DATA IN MANY SEPERATE SOCKETS OR IN ONE BIG SOCKET?
 
+
+    n = write(sockfd, (char *) hdr, header_len);
+    if (n < 0) 
+         error("ERROR writing to socket");
+    
+    // Generate random numbers to be sent each time.
+    srand(time(NULL));
+    for(i = 0; i < 256; i++){
+        fbuffer[i] = (float) rand() / (float) RAND_MAX;
+    }
+    n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
+        if (n < 0) 
+             error("ERROR writing to socket");
+    /*
     for(i = 0; i < 3; i++){
         
         //~ init_fft(bytesToNextHeader++, samplesToNextFFT+=2, ptsPerFFT, sampFreq, 
@@ -144,7 +159,7 @@ int main(int argc, char *argv[])
         //~ if(i == 2) endTrans = 1;
         //~ printf("endTrans is %d\n", endTrans);
     }
-
+    */
 	///////////////////////////////////////////////////////////////////////////////////////////
     
 
