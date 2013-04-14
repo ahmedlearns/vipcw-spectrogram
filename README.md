@@ -1,6 +1,8 @@
 vipcw-spectrogram
 =================
 
+C Socket Examples: http://www.binarytides.com/server-client-example-c-sockets-linux/
+
 GTK+ Image Display resources:
 
 http://www.cs.dartmouth.edu/~xy/cs23/gtk.html

@@ -10,3 +10,5 @@
 void init_fft(int, int, int, int, int);
 
 //void updateTime(struct timeval);
+
+void error(const char*);

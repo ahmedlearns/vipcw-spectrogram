@@ -16,7 +16,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#include "fft_sender.h"
+// #include "fft_sender.h"
 #include "fft_socket_header.h"
 
 struct fft_header * hdr;
@@ -122,6 +122,8 @@ int main(int argc, char *argv[])
 
     // printf("header_len is %d\n", header_len);
 
+    // DO WE WANT TO SEND THE DATA IN MANY SEPERATE SOCKETS OR IN ONE BIG SOCKET?
+
     for(i = 0; i < 3; i++){
         
         //~ init_fft(bytesToNextHeader++, samplesToNextFFT+=2, ptsPerFFT, sampFreq, 
@@ -131,7 +133,7 @@ int main(int argc, char *argv[])
              error("ERROR writing to socket");
         
         for(j = 0; j < 256; j++){
-           fbuffer[j] = 0.3*i;
+           fbuffer[j] = 0.25*i;
         }
         n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
         if (n < 0) 

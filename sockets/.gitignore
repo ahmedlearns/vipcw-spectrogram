@@ -1,3 +1,5 @@
 server
 client
+receiver
+sender
 *.o
