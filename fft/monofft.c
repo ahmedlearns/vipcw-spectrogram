@@ -119,7 +119,7 @@ int main(int argc, char** argv)
     }
 
     for(j = 0; j < 128; j++)
-        printf("fbuffer[%d] is %f\n", j, fbuffer[j]);
+        printf("wavBuffer[%d] is %f, fbuffer[%d] is %f\n", j, wavBuffer[j], j, fbuffer[j]);
 
     // mywave->audio_num_ch=mywave->audio_num_ch-65536;
     // mywave->chunkSize=(mywave->chunkSize/2)+18;
