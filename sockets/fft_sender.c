@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <error.h>
+#include <errno.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/time.h>
@@ -42,9 +44,9 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
 // void updateTime(struct timeval timestamp){
 	// gettimeofday(hdr->timestamp, NULL);
 // }
-void error(const char *msg)
+void error1(const char *msg)
 {
-    perror(msg);
+    fprintf(stderr, "%s\n", msg);
     exit(0);
 }
 
@@ -65,14 +67,14 @@ int main(int argc, char *argv[])
      fprintf(stderr,"ERROR, no host provided\n");
      exit(1);
     }
-    portno = 51717;
+    portno = 51721;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
-        error("ERROR opening socket");
+        error1("ERROR opening socket");
     server = gethostbyname(argv[1]);
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
-        exit(0);
+        exit(-1);
     }
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -80,8 +82,11 @@ int main(int argc, char *argv[])
          (char *)&serv_addr.sin_addr.s_addr,
          server->h_length);
     serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-        error("ERROR connecting");
+    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
+        fprintf(stderr, "Error on connect(): %s\n", strerror(errno));
+        exit(-1);
+    }
+        // error1("ERROR connecting");
     
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +108,7 @@ int main(int argc, char *argv[])
     /*
     n = write(sockfd, (char *) hdr, header_len);
     if (n < 0) 
-         error("ERROR writing to socket");
+         error1("ERROR writing to socket");
     */
 
 	// FILE * f =fopen("data.txt","w");
@@ -118,26 +123,37 @@ int main(int argc, char *argv[])
 	/*
 	n = write(sockfd, fbuffer, 256 * sizeof(float));
     if (n < 0) 
-         error("ERROR writing to socket");
+         error1("ERROR writing to socket");
     */
 
     // printf("header_len is %d\n", header_len);
 
     // DO WE WANT TO SEND THE DATA IN MANY SEPERATE SOCKETS OR IN ONE BIG SOCKET?
 
-
-    n = write(sockfd, (char *) hdr, header_len);
-    if (n < 0) 
-         error("ERROR writing to socket");
-    
-    // Generate random numbers to be sent each time.
-    srand(time(NULL));
-    for(i = 0; i < 256; i++){
-        fbuffer[i] = (float) rand() / (float) RAND_MAX;
-    }
-    n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
+    int k = 0;
+    while(k < 3){
+        fprintf(stderr, "Sending header... ");
+        n = write(sockfd, (char *) hdr, header_len);
+        fprintf(stderr, "Sent header, n = %d\n", n);
         if (n < 0) 
-             error("ERROR writing to socket");
+             error1("ERROR writing to socket");
+        
+        // Generate random numbers to be sent each time.
+        srand(time(NULL));
+        for(i = 0; i < 256; i++){
+            fbuffer[i] = (float) rand() / (float) RAND_MAX;
+        }
+
+        printf("Sending fbuffer\n");
+        fprintf(stderr, "Sending data... ");
+        n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
+        fprintf(stderr, "Sent data, n = %d\n", n);
+            if (n < 0) 
+                 error1("ERROR writing to socket");
+
+        usleep(10000);
+        k++;
+    }
     /*
     for(i = 0; i < 3; i++){
         
@@ -145,14 +161,14 @@ int main(int argc, char *argv[])
                     //~ endTrans);
         n = write(sockfd, (char *) hdr, header_len);
         if (n < 0) 
-             error("ERROR writing to socket");
+             error1("ERROR writing to socket");
         
         for(j = 0; j < 256; j++){
            fbuffer[j] = 0.25*i;
         }
         n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
         if (n < 0) 
-             error("ERROR writing to socket");
+             error1("ERROR writing to socket");
 
 		printf("This is iteration %d\n", i+1);
 
