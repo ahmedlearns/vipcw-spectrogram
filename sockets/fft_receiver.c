@@ -82,9 +82,9 @@ int main(int argc, char *argv[])
 
             
 
-        fprintf(stderr, "Reading header... ");
+        fprintf(stderr, "Reading data... ");
         n = read(newsockfd, (char *) fbuffer, header.ptsPerFFT * sizeof(float));
-        fprintf(stderr, "Read header, n = %d\n", n);    
+        fprintf(stderr, "Read data, n = %d\n", n);    
         if (n < 0)
             error1("ERROR reading from socket");
         else if(n > 0){
