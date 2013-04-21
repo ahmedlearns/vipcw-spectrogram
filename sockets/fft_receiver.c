@@ -18,6 +18,7 @@
 
 #include "fft_socket_header.h"
 
+
 struct fft_header header;
 
 void error1(const char *msg)

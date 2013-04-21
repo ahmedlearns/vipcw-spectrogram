@@ -20,6 +20,7 @@
 
 // #include "fft_sender.h"
 #include "fft_socket_header.h"
+#include "monofft.h"
 
 struct fft_header * hdr;
 
@@ -95,12 +96,12 @@ int main(int argc, char *argv[])
 
     int bytesToNextHeader = 5;  // total amount of space (header+data)
     int samplesToNextFFT = 3;   // Num samples to the start of the next FFT
-    //int ptsPerFFT = 20;         // number of points per FFT 
-    srand(time(NULL)); int ptsPerFFT = (int) rand() % 20;         // number of points per FFT 
+    int ptsPerFFT = 256;         // number of points per FFT 
+    // srand(time(NULL)); int ptsPerFFT = (int) rand() % 20;         // number of points per FFT 
     int sampFreq = 4;
     int endTrans = -1;
     
-    char fft_data[ptsPerFFT * sizeof(float)];
+    // char fft_data[ptsPerFFT * sizeof(float)];
 
     init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq, endTrans);
     int header_len = sizeof(struct fft_header);
@@ -115,7 +116,8 @@ int main(int argc, char *argv[])
 	// fwrite(fft_data, 1, 255, f);
 	// fclose(f);
 	
-	float fbuffer[256];
+	// float fbuffer[ptsPerFFT];
+    float* fbuffer;
 	int i, j;
 	//~ for(i = 0; i < 256; i++){
 		//~ fbuffer[i] = 0.3*i;
@@ -128,8 +130,6 @@ int main(int argc, char *argv[])
 
     // printf("header_len is %d\n", header_len);
 
-    // DO WE WANT TO SEND THE DATA IN MANY SEPERATE SOCKETS OR IN ONE BIG SOCKET?
-
     int k = 0;
     while(k < 3){
         fprintf(stderr, "Sending header... ");
@@ -139,17 +139,18 @@ int main(int argc, char *argv[])
              error1("ERROR writing to socket");
         
         // Generate random numbers to be sent each time.
-        srand(time(NULL));
-        for(i = 0; i < 256; i++){
-            fbuffer[i] = (float) rand() / (float) RAND_MAX;
-        }
+        // srand(time(NULL));
+        // for(i = 0; i < 256; i++){
+        //     fbuffer[i] = (float) rand() / (float) RAND_MAX;
+        // }
 
+        genfft(fbuffer, ptsPerFFT);
         printf("Sending fbuffer\n");
         fprintf(stderr, "Sending data... ");
         n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
         fprintf(stderr, "Sent data, n = %d\n", n);
-            if (n < 0) 
-                 error1("ERROR writing to socket");
+        if (n < 0) 
+             error1("ERROR writing to socket");
 
         usleep(10000);
         k++;
