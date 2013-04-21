@@ -126,3 +126,11 @@ void genfft(float* fbuffer, int N)
     return;
 }
 
+int main(){
+    float f[256];
+    genfft(f, 256);
+    int i;
+    for(i = 0; i < 256; i++) 
+        printf("f[%d] is %12f\n", i, f[i]);
+}
+

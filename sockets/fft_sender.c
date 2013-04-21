@@ -116,8 +116,8 @@ int main(int argc, char *argv[])
 	// fwrite(fft_data, 1, 255, f);
 	// fclose(f);
 	
-	// float fbuffer[ptsPerFFT];
-    float* fbuffer;
+	float fbuffer[ptsPerFFT];
+    // float* fbuffer;
 	int i, j;
 	//~ for(i = 0; i < 256; i++){
 		//~ fbuffer[i] = 0.3*i;
@@ -145,6 +145,7 @@ int main(int argc, char *argv[])
         // }
 
         genfft(fbuffer, ptsPerFFT);
+        
         printf("Sending fbuffer\n");
         fprintf(stderr, "Sending data... ");
         n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
