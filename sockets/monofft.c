@@ -32,12 +32,14 @@ void genfft(float* fbuffer, int N)
         x[i][1]=0;
         i++;
     }
-    // mkfifo("wavePipe", S_IRWXO);
-    // system("arecord -d1 -r4000 -D plughw:CARD=U0x46d0x80a,DEV=0  wavePipe");
+    mkfifo("sample.wav", S_IRWXO);
+    system("arecord -d1 -r4000 -D plughw:1,0  sample.wav");
+    //usleep(1000 * 1000);
     int lSize;
     //FILE * f = fopen("chirp10-500Hz.wav", "r"); //opening the 2 channels wave file
-    FILE * f = fopen("wavePipe.wav", "r"); //opening the 2 channels wave file
-    if(!f) printf("Error readinf from wavePipe");
+    //FILE * f = fopen("wavePipe.wav", "r"); //opening the 2 channels wave file
+    FILE * f = fopen("sample.wav", "r"); //opening the 2 channels wave file
+    if(!f) printf("Error reading from wav file");
     // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
     fseek (f , 0 , SEEK_END);
@@ -125,7 +127,7 @@ void genfft(float* fbuffer, int N)
     free(X);
     return;
 }
-
+/*
 int main(){
     float f[256];
     genfft(f, 256);
@@ -133,4 +135,4 @@ int main(){
     for(i = 0; i < 256; i++) 
         printf("f[%d] is %12f\n", i, f[i]);
 }
-
+*/
