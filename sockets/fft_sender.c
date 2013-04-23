@@ -131,7 +131,12 @@ int main(int argc, char *argv[])
     // printf("header_len is %d\n", header_len);
 
     int k = 0;
+<<<<<<< HEAD
     while(1){
+=======
+    while(k < 5){
+    //while(1){
+>>>>>>> 6664aa42ce4bbd309859ed189bee313a300dcd85
         fprintf(stderr, "Sending header... ");
 
         n = write(sockfd, (char *) hdr, header_len);
@@ -154,7 +159,7 @@ int main(int argc, char *argv[])
         if (n < 0) 
              error1("ERROR writing to socket");
 
-        usleep(10000);
+        usleep(500 * 1000);
         k++;
     }
     /*
