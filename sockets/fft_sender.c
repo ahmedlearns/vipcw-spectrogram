@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
      fprintf(stderr,"ERROR, no host provided\n");
      exit(1);
     }
-    portno = 51721;
+    portno = 51717;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error1("ERROR opening socket");
@@ -131,8 +131,9 @@ int main(int argc, char *argv[])
     // printf("header_len is %d\n", header_len);
 
     int k = 0;
-    while(k < 3){
+    while(1){
         fprintf(stderr, "Sending header... ");
+
         n = write(sockfd, (char *) hdr, header_len);
         fprintf(stderr, "Sent header, n = %d\n", n);
         if (n < 0) 

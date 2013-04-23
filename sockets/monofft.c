@@ -32,11 +32,13 @@ void genfft(float* fbuffer, int N)
         x[i][1]=0;
         i++;
     }
-    // mkfifo("wavePipe", S_IRWXO);
-    // system("arecord -d1 -r4000 -D plughw:CARD=U0x46d0x80a,DEV=0  wavePipe");
+     mkfifo("wavePipe", S_IRWXO);
+     system("arecord -d1 -r44100 -B 100 -D plughw:CARD=U0x46d0x80a,DEV=0  wavePipe");
+     // system("arecord -d1 -r4000 -D sysdefault:CARD=U0x46d0x80a  wavePipe");
     int lSize;
+    FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
+	//usleep(10000);
     //FILE * f = fopen("chirp10-500Hz.wav", "r"); //opening the 2 channels wave file
-    FILE * f = fopen("wavePipe.wav", "r"); //opening the 2 channels wave file
     if(!f) printf("Error readinf from wavePipe");
     // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
@@ -100,20 +102,14 @@ void genfft(float* fbuffer, int N)
 
                 mag_norm = (mag - min)/(max - min);
                 fbuffer[l] = mag_norm;
-                //printf("%12f\n", mag_norm);
-               //fprintf(f2,"%12f\n", mag_norm);
-                //fprintf(f3,"%12f,\n", mag_norm);
+
             }
             k=0;
         }
         i=i+2;
     }
 
-    // mywave->audio_num_ch=mywave->audio_num_ch-65536;
-    // mywave->chunkSize=(mywave->chunkSize/2)+18;
-    // mywave->byteRate=mywave->byteRate/2;
-    // mywave->bckAli_bitPs=mywave->bckAli_bitPs-2;
-    // mywave->subChunk2size=mywave->chunkSize-36; 
+
     
     for(i = 0; i < N; i++)
         printf("wavbuffer[%d] is %12d, fbuffer[%d] is %12f\n", i, wavbuffer[i], i, fbuffer[i]);
@@ -126,11 +122,5 @@ void genfft(float* fbuffer, int N)
     return;
 }
 
-int main(){
-    float f[256];
-    genfft(f, 256);
-    int i;
-    for(i = 0; i < 256; i++) 
-        printf("f[%d] is %12f\n", i, f[i]);
-}
+
 

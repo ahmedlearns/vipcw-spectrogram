@@ -1,3 +1,4 @@
+*~
 *.o
 fft/fft.o
 fft/chirpFFT.txt
