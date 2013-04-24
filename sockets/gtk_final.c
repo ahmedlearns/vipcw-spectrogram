@@ -12,7 +12,7 @@
 #include "fft_socket_header.h"
 
 //#define AXIS_START 0
-#define CAMERA_WIDTH 1024
+#define CAMERA_WIDTH 500
 #define BLUEMAC(x) (MIN((MAX((4*(0.75-(x))), 0.)), 1.) * 255)
 #define REDMAC(x) (MIN((MAX((4*((x)-0.25)), 0.)), 1.) * 255)
 #define GREENMAC(x) (MIN((MAX((4*fabs((x)-0.5)-1.), 0.)), 1.) * 255)
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 	loadImage();
 	
 	//call shift every 1msec
-	gint func_ref = g_timeout_add(500, shift, NULL);
+	gint func_ref = g_timeout_add(1400, shift, NULL);
 	
 	gtk_main();
 	g_source_remove (func_ref);
