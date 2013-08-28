@@ -32,26 +32,16 @@ void genfft(float* fbuffer, int N)
         x[i][1]=0;
         i++;
     }
-<<<<<<< HEAD
-     mkfifo("wavePipe", S_IRWXO);
-     system("arecord -d1 -r44100 -B 100 -D plughw:CARD=U0x46d0x80a,DEV=0  wavePipe");
-     // system("arecord -d1 -r4000 -D sysdefault:CARD=U0x46d0x80a  wavePipe");
-=======
-    mkfifo("sample.wav", S_IRWXO);
-    system("arecord -d1 -r4000 -D plughw:1,0  sample.wav");
-    //usleep(1000 * 1000);
->>>>>>> 6664aa42ce4bbd309859ed189bee313a300dcd85
+
+    mkfifo("wavePipe", S_IRWXO);
+    system("arecord -d1 -r44100 -D front:CARD=AudioPCI,DEV=0  wavePipe");
+    // system("arecord -d1 -r4000 -D sysdefault:CARD=U0x46d0x80a  wavePipe");
     int lSize;
     FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
 	//usleep(10000);
     //FILE * f = fopen("chirp10-500Hz.wav", "r"); //opening the 2 channels wave file
-<<<<<<< HEAD
-    if(!f) printf("Error readinf from wavePipe");
-=======
-    //FILE * f = fopen("wavePipe.wav", "r"); //opening the 2 channels wave file
-    FILE * f = fopen("sample.wav", "r"); //opening the 2 channels wave file
-    if(!f) printf("Error reading from wav file");
->>>>>>> 6664aa42ce4bbd309859ed189bee313a300dcd85
+    if(!f) printf("Error reading from wavePipe");
+
     // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
     fseek (f , 0 , SEEK_END);
@@ -133,11 +123,7 @@ void genfft(float* fbuffer, int N)
     free(X);
     return;
 }
-<<<<<<< HEAD
 
-
-
-=======
 /*
 int main(){
     float f[256];
@@ -147,4 +133,3 @@ int main(){
         printf("f[%d] is %12f\n", i, f[i]);
 }
 */
->>>>>>> 6664aa42ce4bbd309859ed189bee313a300dcd85

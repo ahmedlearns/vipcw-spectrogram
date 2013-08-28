@@ -131,12 +131,8 @@ int main(int argc, char *argv[])
     // printf("header_len is %d\n", header_len);
 
     int k = 0;
-<<<<<<< HEAD
     while(1){
-=======
-    while(k < 5){
-    //while(1){
->>>>>>> 6664aa42ce4bbd309859ed189bee313a300dcd85
+    //while(k < 5){
         fprintf(stderr, "Sending header... ");
 
         n = write(sockfd, (char *) hdr, header_len);
@@ -190,11 +186,4 @@ int main(int argc, char *argv[])
     close(sockfd);
     return 0;
 }
-
-
-
-
-
-
-
 
