@@ -1,6 +1,8 @@
 vipcw-spectrogram
 =================
 
+Full breakdown: vip.gatech.edu/wiki/index.php/Collaborative_Workforce
+
 gcc fft_sender.c monofft.c fft.c -lm -o sender && gcc fft_receiver.c -o receiver
 
 C Socket Examples: http://www.binarytides.com/server-client-example-c-sockets-linux/

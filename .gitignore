@@ -1,4 +1,12 @@
-*~
-*.o
-fft/fft.o
-fft/chirpFFT.txt
+*/test.wav
+*/server
+*/client
+*/receiver
+*/sender
+*/runMonofft
+*/gtk_final
+*/wavePipe
+*/sample.wav
+*/sendfftw
+*/*.o
+*/*~
