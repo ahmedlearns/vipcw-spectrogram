@@ -3,7 +3,14 @@ vipcw-spectrogram
 
 Full breakdown: vip.gatech.edu/wiki/index.php/Collaborative_Workforce
 
-gcc fft_sender.c monofft.c fft.c -lm -o sender && gcc fft_receiver.c -o receiver
+###To run:###
+1. For the receiver
+ *cd receiver
+ *make
+
+2.For the sender
+ *cd sender
+ *make
 
 C Socket Examples: http://www.binarytides.com/server-client-example-c-sockets-linux/
 
