@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 	loadImage();
 	
 	//call shift every 1msec
-	gint func_ref = g_timeout_add(1400, shift, NULL);
+	gint func_ref = g_timeout_add(2000, shift, NULL);
 	
 	gtk_main();
 	g_source_remove (func_ref);

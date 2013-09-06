@@ -34,7 +34,7 @@ void genfft(float* fbuffer, int N)
     }
 
     mkfifo("wavePipe", S_IRWXO);
-    system("arecord -d1 -r44100 -D front:CARD=AudioPCI,DEV=0  wavePipe");
+    system("arecord -d1 -r44100  -D plughw:CARD=WEBCAM,DEV=0  wavePipe");
     // system("arecord -d1 -r4000 -D sysdefault:CARD=U0x46d0x80a  wavePipe");
     int lSize;
     FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
