@@ -55,10 +55,11 @@ void err(const char *msg)
 int main(int argc, char *argv[])
 {
     int bytesToNextHeader = 5;  // total amount of space (header+data)
-    int samplesToNextFFT = 3;   // Num samples to the start of the next FFT
     int ptsPerFFT = 256;         // number of points per FFT 
     // srand(time(NULL)); int ptsPerFFT = (int) rand() % 20;         // number of points per FFT 
-    int sampFreq = 4;
+    int sampFreq = 11025;
+	// dumps out the rest of the samples in that second
+	int samplesToNextFFT = sampFreq - ptsPerFFT;   // Num samples to the start of the next FFT
     int endTrans = -1;
 
     init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq, endTrans);
@@ -68,9 +69,10 @@ int main(int argc, char *argv[])
     int i, j;
     int k = 0;
     
-    int flags = fcntl((int) stdin, F_GETFL); /* get current file status flags */
-    flags |= O_NONBLOCK;        /* turn off blocking flag */
-    fcntl((int) stdin, F_SETFL, flags);       /* set up non-blocking read */
+	/* Set STDIN to be NONBLOCKING */
+    //int flags = fcntl((int) stdin, F_GETFL); /* get current file status flags */
+    //flags |= O_NONBLOCK;        /* turn off blocking flag */
+    //fcntl((int) stdin, F_SETFL, flags);       /* set up non-blocking read */
 
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
@@ -136,9 +138,10 @@ int main(int argc, char *argv[])
  * Discard the header of the wave file, which contains
  *  unwanted meta-data.
  */
-int discard_wav_header(float* buffer)
+int discard_wav_header()
 {   
-    // WAV headers contained 46 byts of overhead:
+	char buffer[46];
+    // WAV headers contained 46 bytes of overhead:
     //  https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
     int n = fgets(buffer, 46, (int) stdin);
     return n;
@@ -147,12 +150,19 @@ int discard_wav_header(float* buffer)
 int Write(int sockfd, float* fbuffer, int numElements,
         struct fft_header *hdr, int header_len)
 {
-    discard_wav_header(fbuffer);
-
+    discard_wav_header();
+	
+	/* Dump out samplesToNextFFT numbe of floats */
+	float buf[hdr->samplesToNextFFT];
+	fgets(buf, hdr->samplesToNextFFT*sizeof(float), stdin);
+	
     int n;
     while(1){
-        
-        n = fgets(fbuffer, hdr->ptsPerFFT*sizeof(float), (int) stdin);
+		int i;
+		        
+        n = fgets(fbuffer, hdr->ptsPerFFT*sizeof(float), stdin);
+		for(i = 0; i < hdr->ptsPerFFT; i++)
+        	printf("fbuffer[%d] is %12f\n", i, fbuffer[i]);	
 
         fprintf(stderr, "Sending header... ");
 
@@ -170,7 +180,8 @@ int Write(int sockfd, float* fbuffer, int numElements,
         if (n < 0) 
              err("ERROR writing to socket");
 
-        return n;
+        
     }
+	return n;
 }
 
