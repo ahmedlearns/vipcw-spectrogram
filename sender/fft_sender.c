@@ -132,9 +132,23 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+/*
+ * Discard the header of the wave file, which contains
+ *  unwanted meta-data.
+ */
+int discard_wav_header(float* buffer)
+{   
+    // WAV headers contained 46 byts of overhead:
+    //  https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
+    int n = fgets(buffer, 46, (int) stdin);
+    return n;
+}
+
 int Write(int sockfd, float* fbuffer, int numElements,
         struct fft_header *hdr, int header_len)
 {
+    discard_wav_header(fbuffer);
+
     int n;
     while(1){
         

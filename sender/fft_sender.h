@@ -13,4 +13,4 @@ void init_fft(int, int, int, int, int);
 
 void err(const char*);
 
-void client(float*);
+int discard_wav_header(float*);
