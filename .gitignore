@@ -10,3 +10,5 @@
 */sendfftw
 */*.o
 */*~
+*exe
+*/sender_child

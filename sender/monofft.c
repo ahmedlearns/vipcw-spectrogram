@@ -21,31 +21,28 @@
 void genfft(float* fbuffer, int N)
 {
     int i=0,j,k,l=0;
-    // int N = 256;                    /* number of points in FFT */
-    // float fbuffer[N];
     int wavbuffer[N];
-    double (*X)[2];                  /* pointer to frequency-domain samples */   /* double */
-    double x[N][2];             /* double */
-    double mag, min, max, mag_norm;                 /* double */
-    X = malloc(2 * N * sizeof(double));  /* double */
+    double (*X)[2];                  /* pointer to frequency-domain samples */   
+    double x[N][2];             
+    double mag, min, max, mag_norm;                 
+    X = malloc(2 * N * sizeof(double));  
     while (i<N) {
         x[i][1]=0;
         i++;
     }
 
-    mkfifo("wavePipe", S_IRWXO);
-    system("arecord -d1 -r44100  -D plughw:CARD=WEBCAM,DEV=0  wavePipe");
-    // system("arecord -d1 -r4000 -D sysdefault:CARD=U0x46d0x80a  wavePipe");
-    int lSize;
+    /* Execute arecord to start recording from the make with the separate-channels option */
+    // char syscall[512];
+    // sprintf(syscall, "arecord -I -f S16_LE -r44100 -D plughw:CARD=WEBCAM,DEV=0  | sender %s", serverIP);
+    // system(syscall);
+    
     FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
-	//usleep(10000);
-    //FILE * f = fopen("chirp10-500Hz.wav", "r"); //opening the 2 channels wave file
     if(!f) printf("Error reading from wavePipe");
 
     // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
     fseek (f , 0 , SEEK_END);
-    lSize = ftell (f);
+    int lSize = ftell (f); //position of the current stream (It's at the end because of fseek())
     rewind (f);
 
     typedef struct wave {
@@ -79,6 +76,7 @@ void genfft(float* fbuffer, int N)
         leftVa=(mywave->data[i+1]<<16) | (mywave->data[i] & mask);
         mywave->data[j]=leftVa;
 
+        /* LEFT CHANNEL DATA GOES HERE */
         x[k][0]=leftVa;
         wavbuffer[k] = leftVa;
         j++;
