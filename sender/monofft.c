@@ -21,7 +21,7 @@
 void genfft(float* fbuffer, int N)
 {
     printf("IN: monofft:genFFT(): sizeof(fbuffer)=%d\n", sizeof(fbuffer));
-    
+
     int i=0,j=0,k=0,l=0;
     //int wavbuffer[N];
     double (*X)[2];                  /* pointer to frequency-domain samples */   
@@ -44,7 +44,7 @@ void genfft(float* fbuffer, int N)
     // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
     //fseek (f , 0 , SEEK_END);
-    //int lSize = sizeof(float)*N; //position of the current stream (It's at the end because of fseek())
+    int lSize = sizeof(float)*N; //position of the current stream (It's at the end because of fseek())
     //rewind (f);
 	
     typedef struct wave {
