@@ -24,6 +24,7 @@
 #include "monofft.h"
 
 struct fft_header * hdr;
+float* fbuffer;
 
 //void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 //		struct timeval timestamp, int sampFreq)
@@ -54,25 +55,27 @@ void err(const char *msg)
 
 int main(int argc, char *argv[])
 {
-    int n = Write(sockfd, fbuffer, ptsPerFFT * sizeof(float), hdr, header_len);
-
+    // int n = Write(get_samples(256), argv[1]);
+    if(!Write(argv[1]))
+        fprintf(stderr, "ERROR, write failed\n");
     return 0;
 }
 
 
 
-const char get_samples(float* buff_a, float* buff_b)
+// float* get_samples(int N)
+void get_samples(int N)
 {
-    int flags = fcntl((int) stdin, F_GETFL); /* get current file status flags */
-    flags |= O_NONBLOCK;        /* turn off blocking flag */
-    fcntl((int) stdin, F_SETFL, flags);       /* set up non-blocking read */
+    int flags = fcntl(stdin, F_GETFL);  /* get current file status flags */
+    flags |= O_NONBLOCK;                /* turn off blocking flag */
+    fcntl(stdin, F_SETFL, flags);       /* set up non-blocking read */
 
     static int init_samples = 0;
     if(!init_samples)
     {
         int bytesToNextHeader = 5;  // total amount of space (header+data)
         int samplesToNextFFT = 3;   // Num samples to the start of the next FFT
-        int ptsPerFFT = 256;         // number of points per FFT 
+        int ptsPerFFT = N;         // number of points per FFT 
         // srand(time(NULL)); int ptsPerFFT = (int) rand() % 20;         // number of points per FFT 
         int sampFreq = 4;
         int endTrans = -1;
@@ -80,21 +83,37 @@ const char get_samples(float* buff_a, float* buff_b)
         init_samples = 1;
     }
 
-    int rcvd_a, rcvd_b;
-    rcvd_a = fgets(buff_a, ptsPerFFT*sizeof(float), (int) stdin);
-    rcvd_b = fgets(buff_b, ptsPerFFT*sizeof(float), (int) stdin);
+    float a[N], b[N];
+    int na, nb, n = 0;
+    // float *ptr = a;
+    fbuffer = a;
 
-    if(rcvd_a < ptsPerFFT*sizeof(float))
-        return 'a';
-    if(rcvd_b < ptsPerFFT*sizeof(float))
-        return 'b';
+    // While N samples have been read:
+    while(n == N){
+        n =  fgets(fbuffer, N*sizeof(float), stdin);
+        if(n == N){
+            fbuffer = (fbuffer == a) ? b : a;
+            // if(fbuffer == a) fbuffer = b;
+            // else fbuffer = a;
+        } else {
+            return (fbuffer == a) ? b : a;
+        }
+    }
 
-    return 'x';
+    // int rcvd_a, rcvd_b;
+    // rcvd_a = fgets(buff_a, ptsPerFFT*sizeof(float), (int) stdin);
+    // rcvd_b = fgets(buff_b, ptsPerFFT*sizeof(float), (int) stdin);
+
+    // if(rcvd_a < ptsPerFFT*sizeof(float))
+    //     return 'a';
+    // if(rcvd_b < ptsPerFFT*sizeof(float))
+    //     return 'b';
+
+    // return 'x';
 
 }
 
-int Write(int sockfd, float* fbuffer, int numElements,
-        struct fft_header *hdr, int header_len)
+int Write(char* host)
 {
 
     int sockfd, portno, n;
@@ -110,7 +129,7 @@ int Write(int sockfd, float* fbuffer, int numElements,
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         err("ERROR opening socket");
-    server = gethostbyname(argv[1]);
+    server = gethostbyname(host);
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
         exit(-1);
@@ -126,20 +145,21 @@ int Write(int sockfd, float* fbuffer, int numElements,
         exit(-1);
     }
 
-    int n;
     while(1){
         
-        char choose_buffer = get_samples(buff_a, buff_b);
+        // fbuffer = get_samples(int ptsPerFFT);
 
-        if(choose_buffer == 'a')
-            fbuffer = buff_a;
-        else if(choose_buffer == 'b')
-            fbuffer = buff_b;
-        else 
-        {
-            printf("Both buffers are not full.\n");
-            fbuffer = buff_a;
-        }
+        // char choose_buffer = get_samples(buff_a, buff_b);
+
+        // if(choose_buffer == 'a')
+        //     fbuffer = buff_a;
+        // else if(choose_buffer == 'b')
+        //     fbuffer = buff_b;
+        // else 
+        // {
+        //     printf("Both buffers are not full.\n");
+        //     fbuffer = buff_a;
+        // }
 
         fprintf(stderr, "Sending header... ");
         n = write(sockfd, (char *) hdr, sizeof(struct fft_header));

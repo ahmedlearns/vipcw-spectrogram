@@ -24,24 +24,24 @@ void start_audio(char* serverIP)
 /*
  * Discard the header of the wave file, which contains unwanted meta-data. *  
  */
-int discard_wav_header(float* buffer)
+int discard_wav_header()
 {   
     // WAV headers contained 46 byts of overhead:
     //  https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
-    int n = fgets(buffer, 46, (int) stdin);
-    return n;
+    float buffer[46];
+    return fgets(buffer, 46, (int) stdin);
 }
 
 int main(int argc, char *argv[])
 {
 	if (argc < 2)
     {
-     fprintf(stderr,"ERROR, no host provided\n");
-     exit(1);
+        fprintf(stderr,"ERROR, no host provided\n");
+        exit(1);
     }
 
-    float temp[46];
-    discard_wav_header(temp);
+    if(!discard_wav_header())
+        fprintf(stderr, "ERROR, discard wav header failed\n");
 
     start_audio(argv[1]);
 
