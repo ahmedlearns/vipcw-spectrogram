@@ -118,7 +118,7 @@ void get_samples(int N)
 
 }
 
-int Write(char* host, int N);
+int Write(char* host, int N)
 {
     printf("IN: fftsender:Write(%s)\n", host);
 
