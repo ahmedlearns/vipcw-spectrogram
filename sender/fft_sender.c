@@ -122,8 +122,6 @@ int Write(char* host, int N)
 {
     printf("IN: fftsender:Write(%s)\n", host);
 
-    get_samples(N);
-
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;  
@@ -176,6 +174,7 @@ int Write(char* host, int N)
         if (n < 0) 
              err("ERROR writing to socket");
         
+        get_samples(N);
         genfft(fbuffer, hdr->ptsPerFFT);
         
         printf("Sending fbuffer\n");
