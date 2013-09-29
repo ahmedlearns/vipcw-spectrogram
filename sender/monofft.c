@@ -16,11 +16,16 @@
 #include <fcntl.h>
 #include <errno.h>    
 #include "fft.h"
+#include "fft_sender.h"
 
 
 void genfft(float* fbuffer, int N)
 {
     printf("IN: monofft:genFFT(): sizeof(fbuffer)=%d\n", sizeof(fbuffer));
+
+    /* Check size of buffer */
+    if(sizeof(fbuffer)/sizeof(float) != N)
+        err("fbuffer does not contain enough samples");
 
     int i=0,j=0,k=0,l=0;
     //int wavbuffer[N];

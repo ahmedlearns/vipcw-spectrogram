@@ -31,7 +31,7 @@ float* fbuffer;
 void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 			 int sampFreq, int endTrans)
 {
-    printf("IN: fftsender:init_fft()\n");
+    printf("IN: fft_sender:init_fft()\n");
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
 	hdr->constSync = 0xACFDFFBC;
 	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
@@ -56,14 +56,12 @@ void err(const char *msg)
 
 int main(int argc, char *argv[])
 {
-    printf("IN: fftsender:main()\n");
+    printf("IN: fft_sender:main()\n");
     // int n = Write(get_samples(256), argv[1]);
-    if(!Write(argv[1]), 256);
+    if(!Write(argv[1], 256));
         fprintf(stderr, "ERROR, write failed\n");
     return 0;
 }
-
-
 
 // float* get_samples(int N)
 void get_samples(int N)
@@ -93,9 +91,10 @@ void get_samples(int N)
     // float *ptr = a;
     fbuffer = a;
 
-    // While N samples have been read:
-    while(n == N){
+    // While N samples have not been read:
+    while(n != N){
         n =  fgets(fbuffer, N*sizeof(float), stdin);
+        printf("IN: fft_sender:get_samples(): reading %d bytes from stdin\n", n);
         if(n == N){
             fbuffer = (fbuffer == a) ? b : a;
             // if(fbuffer == a) fbuffer = b;
@@ -120,7 +119,7 @@ void get_samples(int N)
 
 int Write(char* host, int N)
 {
-    printf("IN: fftsender:Write(%s)\n", host);
+    printf("IN: fft_sender:Write(%s, %d)\n", host, N);
 
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
@@ -151,22 +150,11 @@ int Write(char* host, int N)
         exit(-1);
     }
 
-    printf("IN: fftsender:Write(): sending data\n");
+    printf("IN: fft_sender:Write(): sending data\n");
     while(1){
-        
-        // fbuffer = get_samples(int ptsPerFFT);
 
-        // char choose_buffer = get_samples(buff_a, buff_b);
-
-        // if(choose_buffer == 'a')
-        //     fbuffer = buff_a;
-        // else if(choose_buffer == 'b')
-        //     fbuffer = buff_b;
-        // else 
-        // {
-        //     printf("Both buffers are not full.\n");
-        //     fbuffer = buff_a;
-        // }
+        printf("IN: fft_sender:Write(): getting %d samples..\n", N);
+        get_samples(N);
 
         fprintf(stderr, "Sending header... ");
         n = write(sockfd, (char *) hdr, sizeof(struct fft_header));
@@ -174,7 +162,6 @@ int Write(char* host, int N)
         if (n < 0) 
              err("ERROR writing to socket");
         
-        get_samples(N);
         genfft(fbuffer, hdr->ptsPerFFT);
         
         printf("Sending fbuffer\n");
