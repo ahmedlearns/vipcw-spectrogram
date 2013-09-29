@@ -31,6 +31,7 @@ float* fbuffer;
 void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 			 int sampFreq, int endTrans)
 {
+    printf("IN: fftsender:init_fft()\n");
 	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
 	hdr->constSync = 0xACFDFFBC;
 	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
@@ -55,6 +56,7 @@ void err(const char *msg)
 
 int main(int argc, char *argv[])
 {
+    printf("IN: fftsender:main()\n");
     // int n = Write(get_samples(256), argv[1]);
     if(!Write(argv[1]))
         fprintf(stderr, "ERROR, write failed\n");
@@ -66,6 +68,9 @@ int main(int argc, char *argv[])
 // float* get_samples(int N)
 void get_samples(int N)
 {
+
+    printf("IN: fft_sender:get_samples(%d)\n", N);
+
     int flags = fcntl(stdin, F_GETFL);  /* get current file status flags */
     flags |= O_NONBLOCK;                /* turn off blocking flag */
     fcntl(stdin, F_SETFL, flags);       /* set up non-blocking read */
@@ -115,6 +120,7 @@ void get_samples(int N)
 
 int Write(char* host)
 {
+    printf("fftsender:Write(%s)\n", host);
 
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
@@ -145,6 +151,7 @@ int Write(char* host)
         exit(-1);
     }
 
+    printf("IN: fftsender:Write(): sending data\n");
     while(1){
         
         // fbuffer = get_samples(int ptsPerFFT);
