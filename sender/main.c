@@ -14,7 +14,9 @@
 */
 
 void start_audio(char* serverIP)
-{
+{   
+    printf("IN: main:start_audio()\n");
+
     /* Execute arecord to start recording from the make with the separate-channels option */
     char syscall[512];
     sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | ./sender_child %s", serverIP);
@@ -34,14 +36,17 @@ int discard_wav_header()
 
 int main(int argc, char *argv[])
 {
+    printf("IN: main:main(%s)\n", argv[1]);
+
 	if (argc < 2)
     {
         fprintf(stderr,"ERROR, no host provided\n");
         exit(1);
     }
 
-    if(!discard_wav_header())
-        fprintf(stderr, "ERROR, discard wav header failed\n");
+    /* Don't need to discard header if we are manually separating the channels. */
+    // if(!discard_wav_header())
+    //     fprintf(stderr, "ERROR, discard wav header failed\n");
 
     start_audio(argv[1]);
 

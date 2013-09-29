@@ -20,7 +20,9 @@
 
 void genfft(float* fbuffer, int N)
 {
-    int i=0,j,k,l=0;
+    printf("IN: monofft:genFFT(): sizeof(fbuffer)=%d\n", sizeof(fbuffer));
+    
+    int i=0,j=0,k=0,l=0;
     //int wavbuffer[N];
     double (*X)[2];                  /* pointer to frequency-domain samples */   
     double x[N][2];             
@@ -44,7 +46,7 @@ void genfft(float* fbuffer, int N)
     //fseek (f , 0 , SEEK_END);
     //int lSize = sizeof(float)*N; //position of the current stream (It's at the end because of fseek())
     //rewind (f);
-	/*
+	
     typedef struct wave {
         int chunkID;
         int chunkSize;
@@ -63,24 +65,22 @@ void genfft(float* fbuffer, int N)
     mywave=(wave *) malloc( lSize);
 
 	memcpy(mywave, fbuffer, lSize);	
-	*/
+	
     //fread(mywave,1,lSize,f);
     // printf("size ............. %d\n",lSize);
     // printf("size ......double....... %lu\n",(sizeof(double)*128));
     // printf("size ......double....... %lu\n",(sizeof(float)*128));
 
-    i=0,j=0;
-    k=0;
     int mask=65535;
-    //int  leftVa;
+    int  leftVa;
 	while (i<N) {    
 	//while (i<((lSize-40)/4)) {
 
-        //leftVa=(mywave->data[i+1]<<16) | (mywave->data[i] & mask);
-        //mywave->data[j]=leftVa;
-		x[k][0] = fbuffer[i];
+        leftVa=(mywave->data[i+1]<<16) | (mywave->data[i] & mask);
+        mywave->data[j]=leftVa;
+		// x[k][0] = fbuffer[i];
         /* LEFT CHANNEL DATA GOES HERE */
-       //x[k][0]=leftVa;
+        x[k][0]=leftVa;
         //wavbuffer[k] = leftVa;
         j++;
         k++;
