@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 {
     printf("IN: fftsender:main()\n");
     // int n = Write(get_samples(256), argv[1]);
-    if(!Write(argv[1]))
+    if(!Write(argv[1]), 256);
         fprintf(stderr, "ERROR, write failed\n");
     return 0;
 }
@@ -118,9 +118,11 @@ void get_samples(int N)
 
 }
 
-int Write(char* host)
+int Write(char* host, int N);
 {
-    printf("fftsender:Write(%s)\n", host);
+    printf("IN: fftsender:Write(%s)\n", host);
+
+    get_samples(N);
 
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
