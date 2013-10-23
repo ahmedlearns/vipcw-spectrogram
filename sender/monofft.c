@@ -19,13 +19,13 @@
 #include "fft_sender.h"
 
 
-void genfft(float* fbuffer, int N)
+void genfft(CircularBuffer *cb, int N)
 {
-    printf("IN: monofft:genFFT(): sizeof(fbuffer)=%d\n", sizeof(fbuffer));
+    printf("IN: monofft:genFFT(): sizeof(cb->fbuffer)=%d\n", sizeof(cb->fbuffer));
 
     /* Check size of buffer */
-    if(sizeof(fbuffer)/sizeof(float) != N)
-        err("fbuffer does not contain enough samples");
+    if(sizeof(cb->fbuffer)/sizeof(float) != N)
+        err("cb->fbuffer does not contain enough samples");
 
     int i=0,j=0,k=0,l=0;
     //int wavbuffer[N];
@@ -69,7 +69,7 @@ void genfft(float* fbuffer, int N)
     wave * mywave;
     mywave=(wave *) malloc( lSize);
 
-	memcpy(mywave, fbuffer, lSize);	
+	memcpy(mywave, cb->fbuffer, lSize);	
 	
     //fread(mywave,1,lSize,f);
     // printf("size ............. %d\n",lSize);
@@ -83,7 +83,7 @@ void genfft(float* fbuffer, int N)
 
         leftVa=(mywave->data[i+1]<<16) | (mywave->data[i] & mask);
         mywave->data[j]=leftVa;
-		// x[k][0] = fbuffer[i];
+		// x[k][0] = cb->fbuffer[i];
         /* LEFT CHANNEL DATA GOES HERE */
         x[k][0]=leftVa;
         //wavbuffer[k] = leftVa;
@@ -109,7 +109,7 @@ void genfft(float* fbuffer, int N)
                 mag=sqrt((X[l][0]*X[l][0])+(X[l][1]*X[l][1]));
 
                 mag_norm = (mag - min)/(max - min);
-                fbuffer[l] = mag_norm;
+                cb->fbuffer[l] = mag_norm;
 
             }
             k=0;
@@ -120,7 +120,7 @@ void genfft(float* fbuffer, int N)
 
     
    // for(i = 0; i < N; i++)
-      //  printf("wavbuffer[%d] is %12d, fbuffer[%d] is %12f\n", i, wavbuffer[i], i, fbuffer[i]);
+      //  printf("wavbuffer[%d] is %12d, cb->fbuffer[%d] is %12f\n", i, wavbuffer[i], i, cb->fbuffer[i]);
 
 
    // fwrite(mywave,1,(lSize/2)+22,f1);

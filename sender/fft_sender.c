@@ -26,6 +26,40 @@
 struct fft_header * hdr;
 float* fbuffer;
 
+void cbFree(CircularBuffer *cb) {
+    free(cb->elems); /* OK if null */ }
+
+void cbInit(CircularBuffer *cb, int size) {
+    cb->size  = size;
+    cb->start = 0;
+    cb->count = 0;
+    cb->fbuffer = (float*) calloc(cb->size, sizeof(float));
+}
+ 
+int cbIsFull(CircularBuffer *cb) {
+    return cb->count == cb->size; }
+ 
+int cbIsEmpty(CircularBuffer *cb) {
+    return cb->count == 0; }
+
+/* Write an element, overwriting oldest element if buffer is full. App can
+   choose to avoid the overwrite by checking cbIsFull(). */
+void cbWrite(CircularBuffer *cb, float *elem) {
+    int end = (cb->start + cb->count) % cb->size;
+    cb->fbuffer[end] = *elem;
+    if (cb->count == cb->size)
+        cb->start = (cb->start + 1) % cb->size; /* full, overwrite */
+    else
+        ++ cb->count;
+}
+
+/* Read oldest element. App must ensure !cbIsEmpty() first. */
+void cbRead(CircularBuffer *cb, float *elem) {
+    *elem = cb->fbuffer[cb->start];
+    cb->start = (cb->start + 1) % cb->size;
+    -- cb->count;
+}
+
 //void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 //		struct timeval timestamp, int sampFreq)
 void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
@@ -63,9 +97,13 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+/* Empty out the stdin buffer to the latest N samples */
 // float* get_samples(int N)
-void get_samples(int N)
+// void get_samples(int N)
+int get_samples(CircularBuffer *cb)
 {
+    int N = cb->size;
+    float elem[1];
 
     printf("IN: fft_sender:get_samples(%d)\n", N);
 
@@ -86,33 +124,52 @@ void get_samples(int N)
         init_samples = 1;
     }
 
-    float a[N], b[N];
-    int na, nb, n = 0;
-    // float *ptr = a;
-    fbuffer = a;
+    while(0 != (n = fgets(elem, sizeof(float), stdin)))
+        cbWrite(cb, elem)
+
+    // float a[N], b[N];
+    // int na, nb, n = 0;
+    // // float *ptr = a;
+    // fbuffer = a;
+    // na = fgets(a, N*sizeof(float), stdin);
+    // nb = fgets(b, N*sizeof(float), stdin);
+    // while(a == N && b == N){
+    //     na = fgets(a, N*sizeof(float), stdin);
+    //     if(a != N){
+    //         fbuffer = b;
+    //         break;
+    //     }
+    //     nb = fgets(b, N*sizeof(float), stdin);
+    //     if(b != N){
+    //         fbuffer = a;
+    //         break;
+    //     }
+    // }
+
 
     // While N samples have not been read:
-    while(n != N){
-        n =  fgets(fbuffer, N*sizeof(float), stdin);
-        printf("IN: fft_sender:get_samples(): reading %d bytes from stdin\n", n);
-        if(n == N){
-            fbuffer = (fbuffer == a) ? b : a;
-            // if(fbuffer == a) fbuffer = b;
-            // else fbuffer = a;
-        } else {
-            return (fbuffer == a) ? b : a;
-        }
-    }
-
+    // while(n != N){
+    //     n =  fgets(fbuffer, N*sizeof(float), stdin);
+    //     printf("IN: fft_sender:get_samples(): reading %d bytes from stdin\n", n);
+    //     if(n == N){
+    //         if(fbuffer == a)
+    //             fbuffer = b;
+    //         else
+    //             fbuffer = a;
+    //         //fbuffer = (fbuffer == a) ? b : a;
+    //         // if(fbuffer == a) fbuffer = b;
+    //         // else fbuffer = a;
+    //     } else {
+    //         return (fbuffer == a) ? b : a;
+    //     }
+    // }
     // int rcvd_a, rcvd_b;
     // rcvd_a = fgets(buff_a, ptsPerFFT*sizeof(float), (int) stdin);
     // rcvd_b = fgets(buff_b, ptsPerFFT*sizeof(float), (int) stdin);
-
     // if(rcvd_a < ptsPerFFT*sizeof(float))
     //     return 'a';
     // if(rcvd_b < ptsPerFFT*sizeof(float))
     //     return 'b';
-
     // return 'x';
 
 }
@@ -120,6 +177,9 @@ void get_samples(int N)
 int Write(char* host, int N)
 {
     printf("IN: fft_sender:Write(%s, %d)\n", host, N);
+
+    CircularBuffer cb;
+    cbInit(&cb, N);
 
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
@@ -154,7 +214,8 @@ int Write(char* host, int N)
     while(1){
 
         printf("IN: fft_sender:Write(): getting %d samples..\n", N);
-        get_samples(N);
+        
+        get_samples(&cb);
 
         fprintf(stderr, "Sending header... ");
         n = write(sockfd, (char *) hdr, sizeof(struct fft_header));
@@ -162,7 +223,7 @@ int Write(char* host, int N)
         if (n < 0) 
              err("ERROR writing to socket");
         
-        genfft(fbuffer, hdr->ptsPerFFT);
+        genfft(&cb, hdr->ptsPerFFT);
         
         printf("Sending fbuffer\n");
         fprintf(stderr, "Sending data... ");
@@ -173,6 +234,7 @@ int Write(char* host, int N)
 
         return n;
     }
+    cbFree(&cb);
     close(sockfd);
 }
 
