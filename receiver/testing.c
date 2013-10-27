@@ -12,7 +12,7 @@
 #include "fft_socket_header.h"
 
 //#define AXIS_START 0
-#define CAMERA_WIDTH 500
+#define CAMERA_HEIGHT 500
 #define BLUEMAC(x) (MIN((MAX((4*(0.75-(x))), 0.)), 1.) * 255)
 #define REDMAC(x) (MIN((MAX((4*((x)-0.25)), 0.)), 1.) * 255)
 #define GREENMAC(x) (MIN((MAX((4*fabs((x)-0.5)-1.), 0.)), 1.) * 255)
@@ -21,11 +21,12 @@ GtkWidget *image;
 char buff[20];
 float *buffer;
 int samp_rate;
-int CAMERA_HEIGHT;
+int CAMERA_WIDTH;
 int port_num;
 int sockfd, newsockfd;
 socklen_t clilen;
 int n;
+int count;
 struct sockaddr_in serv_addr, cli_addr;
 
 struct fft_header header;
@@ -36,7 +37,7 @@ struct pixel
 };
 
 struct pixel* rgbImage;
-
+struct pixel* rgbImageTemp;
 
 void error1(const char *msg)
 {
@@ -44,20 +45,17 @@ void error1(const char *msg)
     exit(1);
 }
 
-int loadImage()
+int loadImage( struct pixel * rgbImage)
 {
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_data((unsigned char*)rgbImage, GDK_COLORSPACE_RGB, FALSE, 8, CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_WIDTH  * 3, NULL, NULL);
 	gtk_image_set_from_pixbuf((GtkImage*) image, pixbuf);
-	gtk_widget_queue_draw(image);
-
-return 0;
+	//gtk_widget_queue_draw(image);
 }
 
 int shift()
 {
 	int i, j;
-	//newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-	//if(1)
+	count++;
 	fprintf(stderr, "Reading header... ");
 	n = read(newsockfd, &header, sizeof(struct fft_header));
 	if (n < 0)
@@ -65,7 +63,6 @@ int shift()
 	else if (n > 0)
 	{
 		printf("header.constSync is %X\n", header.constSync);
-		// printf("header_len is %d\n", sizeof(struct fft_header));
 		if(header.constSync != 0xACFDFFBC)
 			error1("ERROR reading from socket, incorrect header placement\n");
 	}
@@ -88,26 +85,43 @@ int shift()
 	/*END*/
 
 	/*shifting data in pixbuff*/
-	for(j=0; j<CAMERA_HEIGHT; j++)
+	/*
+	for(j=0; j<CAMERA_WIDTH; j++)
 	{
-		for(i = CAMERA_WIDTH-1; i >=1; i--)
+		for(i = CAMERA_HEIGHT-1; i >=1; i--)
 		{
-			rgbImage[j*CAMERA_WIDTH+i] = rgbImage[j*CAMERA_WIDTH+i-1];
+			rgbImage[i*CAMERA_WIDTH+j] = rgbImage[(i-1)*CAMERA_WIDTH+j];
 		}
 	}
+	*/
+
+	if( count % 2)
+	{
+		memcpy(rgbImageTemp + (CAMERA_WIDTH), rgbImage, (CAMERA_HEIGHT-1)*CAMERA_WIDTH*3);
 	
-	for(i = CAMERA_HEIGHT-1; i>=0 ; i--)
-	{		
-		rgbImage[i*CAMERA_WIDTH].blue = BLUEMAC(buffer[i]);
-		rgbImage[i*CAMERA_WIDTH].red = REDMAC(buffer[i]);
-		rgbImage[i*CAMERA_WIDTH].green = GREENMAC(buffer[i]);
+		for(j=0; j<CAMERA_WIDTH; j++)
+		{
+			rgbImageTemp[j].blue = BLUEMAC(buffer[j]);
+			rgbImageTemp[j].red = REDMAC(buffer[j]);
+			rgbImageTemp[j].green = GREENMAC(buffer[j]);
+		}
+		loadImage(rgbImageTemp);
 	}
-	//count++;
-	
+	else
+	{
+		memcpy(rgbImage + (CAMERA_WIDTH), rgbImageTemp, (CAMERA_HEIGHT-1)*CAMERA_WIDTH*3);
+		for(j=0; j<CAMERA_WIDTH; j++)
+		{
+			rgbImage[j].blue = BLUEMAC(buffer[j]);
+			rgbImage[j].red = REDMAC(buffer[j]);
+			rgbImage[j].green = GREENMAC(buffer[j]);
+		}
+		loadImage(rgbImage);
+	}
+//	gdk_pixbuf_scale(pixbuf, pixbuf, 2, 1, CAMERA_WIDTH -1, CAMERA_HEIGHT, 0,0,1,1,1);
+//	gtk_image_set_from_pixbuf((GtkImage*) image, pixbuf);
 	fprintf(stderr, "Loading image... ");
-	loadImage();
 	fprintf(stderr, "Image loaded.\n");
-	//usleep(10000);
 	return 1;
 }
 
@@ -115,8 +129,9 @@ int main(int argc, char *argv[])
 {
     GtkWidget *window;
 	int i, j, k;
+	count = 0;
 	/*initiate gtk*/
-	gtk_init(&argc, &argv);
+gtk_init(&argc, &argv);
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Spectrogram");
     gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
@@ -163,8 +178,9 @@ int main(int argc, char *argv[])
 
 	//Initializing structures
 	samp_rate = header.ptsPerFFT;
-	CAMERA_HEIGHT = samp_rate;
+	CAMERA_WIDTH = samp_rate;
 	rgbImage = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
+	rgbImageTemp = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
 	buffer = malloc(sizeof(float) * samp_rate);
 
 	//First Data
@@ -191,16 +207,16 @@ int main(int argc, char *argv[])
 			rgbImage[j+i*CAMERA_WIDTH].green = GREENMAC(0);
 		}
 	}
-	for(i = CAMERA_HEIGHT-1; i>=0 ; i--)
+	for(i = 0; i<CAMERA_WIDTH ; i++)
 	{		
-		rgbImage[i*CAMERA_WIDTH].blue = BLUEMAC(buffer[i]);
-		rgbImage[i*CAMERA_WIDTH].red = REDMAC(buffer[i]);
-		rgbImage[i*CAMERA_WIDTH].green = GREENMAC(buffer[i]);
+		rgbImage[i].blue = BLUEMAC(buffer[i]);
+		rgbImage[i].red = REDMAC(buffer[i]);
+		rgbImage[i].green = GREENMAC(buffer[i]);
 	}
 	
 	//loadeImage function
-	loadImage();
-	
+	loadImage(rgbImage);
+
 	//call shift every 1msec
 	gint func_ref = g_timeout_add(2000, shift, NULL);
 	
