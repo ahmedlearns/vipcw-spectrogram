@@ -9,7 +9,6 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <fcntl.h>
 #include "fft_socket_header.h"
 
 //#define AXIS_START 0
@@ -28,20 +27,6 @@ int sockfd, newsockfd;
 socklen_t clilen;
 int n;
 int count;
-int size;
-int length;
-int readCount = 0;
-
-char *tempBuf;
-int bufSize;
-char * in;
-char * out;
-int getData();
-int shift();
-void SetNonBlocking( int filehandle );
-char* headerBuf;
-char* dataBuf;
-
 struct sockaddr_in serv_addr, cli_addr;
 
 struct fft_header header;
@@ -66,85 +51,54 @@ int loadImage( struct pixel * rgbImage)
 	gtk_image_set_from_pixbuf((GtkImage*) image, pixbuf);
 	//gtk_widget_queue_draw(image);
 }
-/*
-int getData()
-{
-	 int i;
-	if(headCheck == 0)
-	{
-		//printf("getting header");
-		n = read(newsockfd, &header + headerCount, sizeof(struct fft_header) - headerCount);
-		//n = recv(newsockfd, &header + headerCount,1, MSG_DONTWAIT);
-		if (n > 0)
-			headerCount += n;
-		//printf("headerCount = %d, n = %d\n", headerCount, n);
-		if(headerCount == sizeof(struct fft_header))
-		{
-			//printf("size of constsSync = %d\n", sizeof(header.constSync));
-			fprintf(stderr, "\nReading header... ");  
-			printf("header.constSync is %X\n", header.constSync);
-			if(header.constSync != 0xACFDFFBC)
-				error1("ERROR reading from socket, incorrect header placement\n");
-			headCheck = 1;
-			headerCount = 0;
-		}
-	}
-	else
-	{
-		n = read(newsockfd, &buffer + bufCount, bufSize - bufCount);
-		//n = recv(newsockfd, &buffer + bufCount, (sizeof(float) * header.ptsPerFFT) - bufCount, MSG_DONTWAIT);
-		if (n > 0)
-			bufCount += n;
-		//printf("bufCount = %d, n = %d\n", bufCount, n); 
-		//printf("buffer size = %d\n", bufSize);
-		if(bufCount == (sizeof(float) * header.ptsPerFFT))	
-		{
-			fprintf(stderr, "Reading data... ");
-			for( i = 0; i < header.ptsPerFFT; i++)
-			{
-				printf("here\n");
-				printf("%f\n", buffer[i]);
-			}
-			bufCount = 0;
-			headCheck = 0;
-			shift();
-		}	
-	}
 
-	return 1;
-}
-*/
-
-int getData()
-{
-	int i;
-	int constant;
-	n = recv(newsockfd, tempBuf + readCount, length - readCount, MSG_DONTWAIT);
-	if(n>0)
-		readCount += n;
-
-	if(readCount == length)
-	{
-		constant = ((int*)(tempBuf))[0];
-		fprintf(stderr, "\nReading header... ");  
-		printf("header.constSync is %X\n", constant);
-		if(constant != 0xACFDFFBC)
-			error1("ERROR reading from socket, incorrect header placement\n");
-		for( i = 0 ; i < samp_rate; i++)
-			buffer[i] = ((float*)(tempBuf + sizeof(struct fft_header)))[i];
-		fprintf(stderr, "Reading data... ");
-		shift();
-		readCount = 0;
-	}
-	return 1;
-}
 int shift()
 {
 	int i, j;
 	count++;
+	fprintf(stderr, "Reading header... ");
+	n = read(newsockfd, &header, sizeof(struct fft_header));
+	if (n < 0)
+	    error1("ERROR reading from socket");
+	else if (n > 0)
+	{
+		printf("header.constSync is %X\n", header.constSync);
+		if(header.constSync != 0xACFDFFBC)
+			error1("ERROR reading from socket, incorrect header placement\n");
+	}
+	else if( n == 0)
+	{
+		printf("Sender has closed connection\n");
+		exit(0);
+	}
+
+	fprintf(stderr, "Reading data... ");
+	n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
+	if (n < 0)
+	    error1("ERROR reading from socket");
+	else if( n == 0)
+	{
+		printf("Sender has closed connection\n");
+		exit(0);
+	}
+
+	/*END*/
+
+	/*shifting data in pixbuff*/
+	/*
+	for(j=0; j<CAMERA_WIDTH; j++)
+	{
+		for(i = CAMERA_HEIGHT-1; i >=1; i--)
+		{
+			rgbImage[i*CAMERA_WIDTH+j] = rgbImage[(i-1)*CAMERA_WIDTH+j];
+		}
+	}
+	*/
+
 	if( count % 2)
 	{
 		memcpy(rgbImageTemp + (CAMERA_WIDTH), rgbImage, (CAMERA_HEIGHT-1)*CAMERA_WIDTH*3);
+	
 		for(j=0; j<CAMERA_WIDTH; j++)
 		{
 			rgbImageTemp[j].blue = BLUEMAC(buffer[j]);
@@ -164,6 +118,10 @@ int shift()
 		}
 		loadImage(rgbImage);
 	}
+//	gdk_pixbuf_scale(pixbuf, pixbuf, 2, 1, CAMERA_WIDTH -1, CAMERA_HEIGHT, 0,0,1,1,1);
+//	gtk_image_set_from_pixbuf((GtkImage*) image, pixbuf);
+	fprintf(stderr, "Loading image... ");
+	fprintf(stderr, "Image loaded.\n");
 	return 1;
 }
 
@@ -171,9 +129,7 @@ int main(int argc, char *argv[])
 {
     GtkWidget *window;
 	int i, j, k;
-	//float* buffer;
 	count = 0;
-	headerBuf = malloc(sizeof(struct fft_header));
 	/*initiate gtk*/
 gtk_init(&argc, &argv);
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -187,7 +143,6 @@ gtk_init(&argc, &argv);
 	/*END*/
 	/*Initiate header*/
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	
     if (sockfd < 0)
         error1("ERROR opening socket");
     bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -205,9 +160,6 @@ gtk_init(&argc, &argv);
        error1("ERROR on accept");
 	//First Header
     fprintf(stderr, "Reading header... ");  
-	//int flags = fcntl(newsockfd, F_GETFL, 0);
-	//fcntl(newsockfd, F_SETFL, flags | O_NONBLOCK);
-	SetNonBlocking( sockfd );
     n = read(newsockfd, &header, sizeof(struct fft_header));
     if (n < 0)
        error1("ERROR reading from socket");
@@ -230,15 +182,7 @@ gtk_init(&argc, &argv);
 	rgbImage = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
 	rgbImageTemp = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
 	buffer = malloc(sizeof(float) * samp_rate);
-	//dataBuf = malloc(sizeof(float) * samp_rate);
-	bufSize = sizeof(float)* samp_rate;
-	length = (sizeof(struct fft_header) + sizeof(float)* samp_rate);
-	size =  length* 2 + 1;
-	tempBuf = malloc(length);
-	in = tempBuf;
-	out = tempBuf;
 
-	//printf("buffer size = %d\n", bufSize);
 	//First Data
 	fprintf(stderr, "Reading data... ");
     n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
@@ -272,33 +216,13 @@ gtk_init(&argc, &argv);
 	
 	//loadeImage function
 	loadImage(rgbImage);
+
 	//call shift every 1msec
-	gint func_ref = g_timeout_add(50, getData, NULL);
+	gint func_ref = g_timeout_add(2000, shift, NULL);
 	
 	gtk_main();
 	g_source_remove (func_ref);
    
     return 0;
 
-}
-
-void SetNonBlocking( int filehandle )
-{
-    int fhFlags;
-
-    fhFlags = fcntl(filehandle,F_GETFL);
-    if (fhFlags < 0)
-    {
-        perror("fcntl(F_GETFL)");
-        exit(1);
-    }
-
-    fhFlags |= O_NONBLOCK;
-    if (fcntl(filehandle,F_SETFL,fhFlags) < 0)
-    {   
-        perror("fcntl(F_SETFL)");
-        exit(1);
-    } 
-
-    return;
 }
