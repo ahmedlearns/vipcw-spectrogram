@@ -2,6 +2,8 @@
  *
  * This file will contain functions that will package fft data to be sent 
  * through a socket.
+ *
+ * 10/29/2013   Separate CircularBuffer functions to external file.
  * 
  * Author: Ahmed Ismail
  */
