@@ -19,6 +19,7 @@ void start_audio(char* serverIP)
 
     /* Execute arecord to start recording from the make with the separate-channels option */
     char syscall[512];
+    // sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | tee sender.wav | ./sender_child %s", serverIP);
     sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | ./sender_child %s", serverIP);
     system(syscall);
 }

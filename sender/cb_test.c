@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 /* Circular buffer object */
 typedef struct {
@@ -58,10 +59,15 @@ int main(){
     // cbWrite(&cb, &c);
     // cbWrite(&cb, &d);
 
-    char buff[50];
-    empty_stdin();
-    int n = read(fileno(stdin), buff, cb.size);
-    printf("%s\n", buff);
+    while(1){
+        float buff[50];
+        empty_stdin();
+        sleep(1.5);
+        int n = read(fileno(stdin), buff, cb.size);
+        int i = 0;
+        for(; i < 50; i++)
+            printf("%f\n", buff[i]);
+    }
 
     // char buff[50];
     // int n;
