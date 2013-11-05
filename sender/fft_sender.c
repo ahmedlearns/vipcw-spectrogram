@@ -29,7 +29,7 @@ struct fft_header * hdr;
 float* fbuffer;
 
 void cbFree(CircularBuffer *cb) {
-    free(cb->elems); /* OK if null */ }
+    free(cb->fbuffer); /* OK if null */ }
 
 void cbInit(CircularBuffer *cb, int size) {
     cb->size  = size;
@@ -126,8 +126,9 @@ int get_samples(CircularBuffer *cb)
         init_samples = 1;
     }
 
-    while(0 != (n = fgets(elem, sizeof(float), stdin)))
-        cbWrite(cb, elem)
+    int n;
+    while(0 < (n = fgets(elem, sizeof(float), stdin)))
+        cbWrite(cb, elem);
 
     // float a[N], b[N];
     // int na, nb, n = 0;
