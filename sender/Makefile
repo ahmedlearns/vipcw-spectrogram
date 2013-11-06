@@ -10,6 +10,9 @@ cb: cb_test.c cb_main.c
 	$(CC) cb_test.c -o cb_child
 	$(CC) cb_main.c -o cb
 
+nb: nonblock_stdin.c
+	$(CC) nonblock_stdin.c -o nb
+
 clena:
 clean:
 	rm -rf sender sender_child cb_child cb sender.wav
