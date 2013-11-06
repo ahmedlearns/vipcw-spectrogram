@@ -7,7 +7,7 @@ typedef struct {
     int         size;   /* maximum number of elements           */
     int         start;  /* index of oldest element              */
     int         count;  /* count of elements in circular buffer */
-    char       *fbuffer;  /* vector of elements                */
+    float       *fbuffer;  /* vector of elements                */
 } CircularBuffer;
 
 void cbFree(CircularBuffer *cb) {
@@ -17,7 +17,7 @@ void cbInit(CircularBuffer *cb, int size) {
     cb->size  = size;
     cb->start = 0;
     cb->count = 0;
-    cb->fbuffer = (char*) calloc(cb->size, sizeof(char));
+    cb->fbuffer = (float*) calloc(cb->size, sizeof(float));
 }
  
 int cbIsFull(CircularBuffer *cb) {
@@ -28,7 +28,7 @@ int cbIsEmpty(CircularBuffer *cb) {
 
 /* Write an element, overwriting oldest element if buffer is full. App can
    choose to avoid the overwrite by checking cbIsFull(). */
-void cbWrite(CircularBuffer *cb, char *elem) {
+void cbWrite(CircularBuffer *cb, float *elem) {
     int end = (cb->start + cb->count) % cb->size;
     cb->fbuffer[end] = *elem;
     if (cb->count == cb->size)
@@ -38,7 +38,7 @@ void cbWrite(CircularBuffer *cb, char *elem) {
 }
 
 /* Read oldest element. App must ensure !cbIsEmpty() first. */
-void cbRead(CircularBuffer *cb, char *elem) {
+void cbRead(CircularBuffer *cb, float *elem) {
     *elem = cb->fbuffer[cb->start];
     cb->start = (cb->start + 1) % cb->size;
     -- cb->count;
@@ -64,9 +64,20 @@ int main(){
         empty_stdin();
         sleep(1.5);
         int n = read(fileno(stdin), buff, cb.size);
+        buff[n] = '\0';
+        
         int i = 0;
-        for(; i < 50; i++)
-            printf("%f\n", buff[i]);
+        while(buff[i] != 0){
+            cbWrite(&cb, &buff[i]);
+            i++;
+        }
+
+        while(!cbIsEmpty(&cb)){
+            float *c;
+            cbRead(&cb, c);
+            printf("%f", *c);
+        }
+
     }
 
     // char buff[50];

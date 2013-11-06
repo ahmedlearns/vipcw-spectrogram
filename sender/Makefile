@@ -6,10 +6,11 @@ all: $(DEP)
 	$(CC) $(DEP) $(CFLAGS) -o sender_child
 	$(CC) main.c -o sender
 
-cb: 
+cb: cb_test.c cb_main.c
 	$(CC) cb_test.c -o cb_child
-	$(CC) cb_main.c -o ./cb
+	$(CC) cb_main.c -o cb
 
+clena:
 clean:
 	rm -rf sender sender_child cb_child cb
 	rm -rf sender.exe sender_child.exe cb_child.exe cb.exe
