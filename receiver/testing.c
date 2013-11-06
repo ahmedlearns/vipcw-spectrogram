@@ -34,13 +34,8 @@ int readCount = 0;
 
 char *tempBuf;
 int bufSize;
-char * in;
-char * out;
 int getData();
 int shift();
-void SetNonBlocking( int filehandle );
-char* headerBuf;
-char* dataBuf;
 
 struct sockaddr_in serv_addr, cli_addr;
 
@@ -66,73 +61,32 @@ int loadImage( struct pixel * rgbImage)
 	gtk_image_set_from_pixbuf((GtkImage*) image, pixbuf);
 	//gtk_widget_queue_draw(image);
 }
-/*
-int getData()
-{
-	 int i;
-	if(headCheck == 0)
-	{
-		//printf("getting header");
-		n = read(newsockfd, &header + headerCount, sizeof(struct fft_header) - headerCount);
-		//n = recv(newsockfd, &header + headerCount,1, MSG_DONTWAIT);
-		if (n > 0)
-			headerCount += n;
-		//printf("headerCount = %d, n = %d\n", headerCount, n);
-		if(headerCount == sizeof(struct fft_header))
-		{
-			//printf("size of constsSync = %d\n", sizeof(header.constSync));
-			fprintf(stderr, "\nReading header... ");  
-			printf("header.constSync is %X\n", header.constSync);
-			if(header.constSync != 0xACFDFFBC)
-				error1("ERROR reading from socket, incorrect header placement\n");
-			headCheck = 1;
-			headerCount = 0;
-		}
-	}
-	else
-	{
-		n = read(newsockfd, &buffer + bufCount, bufSize - bufCount);
-		//n = recv(newsockfd, &buffer + bufCount, (sizeof(float) * header.ptsPerFFT) - bufCount, MSG_DONTWAIT);
-		if (n > 0)
-			bufCount += n;
-		//printf("bufCount = %d, n = %d\n", bufCount, n); 
-		//printf("buffer size = %d\n", bufSize);
-		if(bufCount == (sizeof(float) * header.ptsPerFFT))	
-		{
-			fprintf(stderr, "Reading data... ");
-			for( i = 0; i < header.ptsPerFFT; i++)
-			{
-				printf("here\n");
-				printf("%f\n", buffer[i]);
-			}
-			bufCount = 0;
-			headCheck = 0;
-			shift();
-		}	
-	}
-
-	return 1;
-}
-*/
 
 int getData()
 {
 	int i;
 	int constant;
-	n = recv(newsockfd, tempBuf + readCount, length - readCount, MSG_DONTWAIT);
+
+	// get as many bytes in the socket to fill up the buffer
+	n = recv(newsockfd, tempBuf + readCount, length - readCount, MSG_DONTWAIT);	
 	if(n>0)
 		readCount += n;
 
-	if(readCount == length)
+	if(readCount == length)	//when get enough data
 	{
+		// check header constant 
 		constant = ((int*)(tempBuf))[0];
 		fprintf(stderr, "\nReading header... ");  
 		printf("header.constSync is %X\n", constant);
 		if(constant != 0xACFDFFBC)
 			error1("ERROR reading from socket, incorrect header placement\n");
+
+		//put data into a buffer
 		for( i = 0 ; i < samp_rate; i++)
 			buffer[i] = ((float*)(tempBuf + sizeof(struct fft_header)))[i];
 		fprintf(stderr, "Reading data... ");
+
+		//shift
 		shift();
 		readCount = 0;
 	}
@@ -169,52 +123,49 @@ int shift()
 
 int main(int argc, char *argv[])
 {
-    GtkWidget *window;
+    	GtkWidget *window;
 	int i, j, k;
-	//float* buffer;
 	count = 0;
-	headerBuf = malloc(sizeof(struct fft_header));
+
 	/*initiate gtk*/
-gtk_init(&argc, &argv);
-    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Spectrogram");
-    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
-    gtk_container_set_border_width(GTK_CONTAINER(window), 2);
-    image = gtk_image_new();
-    gtk_container_add(GTK_CONTAINER(window), image);
-    g_signal_connect(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit),NULL);
-    gtk_widget_show_all(window);
+	gtk_init(&argc, &argv);
+    	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    	gtk_window_set_title(GTK_WINDOW(window), "Spectrogram");
+    	gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+    	gtk_container_set_border_width(GTK_CONTAINER(window), 2);
+    	image = gtk_image_new();
+    	gtk_container_add(GTK_CONTAINER(window), image);
+    	g_signal_connect(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit),NULL);
+    	gtk_widget_show_all(window);
 	/*END*/
-	/*Initiate header*/
+
+	/*Initialize socket*/
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	
-    if (sockfd < 0)
-        error1("ERROR opening socket");
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    port_num = 51717;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY; 
-    serv_addr.sin_port = htons(port_num);
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-        error1("ERROR on binding");
-    listen(sockfd,5);
-    clilen = sizeof(cli_addr);
+	if (sockfd < 0)
+        	error1("ERROR opening socket");
+    	bzero((char *) &serv_addr, sizeof(serv_addr));
+    	port_num = 51717;
+    	serv_addr.sin_family = AF_INET;
+    	serv_addr.sin_addr.s_addr = INADDR_ANY; 
+    	serv_addr.sin_port = htons(port_num);
+    	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        	error1("ERROR on binding");
+    	listen(sockfd,5);
+    	clilen = sizeof(cli_addr);
 	
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsockfd < 0)
-       error1("ERROR on accept");
+    	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    	if (newsockfd < 0)
+       		error1("ERROR on accept");
+
 	//First Header
-    fprintf(stderr, "Reading header... ");  
-	//int flags = fcntl(newsockfd, F_GETFL, 0);
-	//fcntl(newsockfd, F_SETFL, flags | O_NONBLOCK);
-	SetNonBlocking( sockfd );
-    n = read(newsockfd, &header, sizeof(struct fft_header));
-    if (n < 0)
-       error1("ERROR reading from socket");
-    else if (n > 0)
+    	fprintf(stderr, "Reading header... ");  
+    	n = read(newsockfd, &header, sizeof(struct fft_header));
+    	if (n < 0)
+       		error1("ERROR reading from socket");
+    	else if (n > 0)
 	{
 		printf("header.constSync is %X\n", header.constSync);
-    	// printf("header_len is %d\n", sizeof(struct fft_header));
 		if(header.constSync != 0xACFDFFBC)
 			error1("ERROR reading from socket, incorrect header placement\n");
 	}
@@ -230,20 +181,16 @@ gtk_init(&argc, &argv);
 	rgbImage = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
 	rgbImageTemp = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
 	buffer = malloc(sizeof(float) * samp_rate);
-	//dataBuf = malloc(sizeof(float) * samp_rate);
 	bufSize = sizeof(float)* samp_rate;
 	length = (sizeof(struct fft_header) + sizeof(float)* samp_rate);
 	size =  length* 2 + 1;
 	tempBuf = malloc(length);
-	in = tempBuf;
-	out = tempBuf;
 
-	//printf("buffer size = %d\n", bufSize);
 	//First Data
 	fprintf(stderr, "Reading data... ");
-    n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
-    if (n < 0)
-    	error1("ERROR reading from socket");
+    	n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
+    	if (n < 0)
+    		error1("ERROR reading from socket");
 	else if( n == 0)
 	{
 		printf("Sender has closed connection\n");
@@ -272,7 +219,8 @@ gtk_init(&argc, &argv);
 	
 	//loadeImage function
 	loadImage(rgbImage);
-	//call shift every 1msec
+
+	//call shift every 50msec
 	gint func_ref = g_timeout_add(50, getData, NULL);
 	
 	gtk_main();
@@ -282,23 +230,3 @@ gtk_init(&argc, &argv);
 
 }
 
-void SetNonBlocking( int filehandle )
-{
-    int fhFlags;
-
-    fhFlags = fcntl(filehandle,F_GETFL);
-    if (fhFlags < 0)
-    {
-        perror("fcntl(F_GETFL)");
-        exit(1);
-    }
-
-    fhFlags |= O_NONBLOCK;
-    if (fcntl(filehandle,F_SETFL,fhFlags) < 0)
-    {   
-        perror("fcntl(F_SETFL)");
-        exit(1);
-    } 
-
-    return;
-}
