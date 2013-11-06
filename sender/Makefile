@@ -15,5 +15,5 @@ nb: nonblock_stdin.c
 
 clena:
 clean:
-	rm -rf sender sender_child cb_child cb sender.wav
+	rm -rf sender sender_child cb_child cb sender.wav nb
 	rm -rf sender.exe sender_child.exe cb_child.exe cb.exe
