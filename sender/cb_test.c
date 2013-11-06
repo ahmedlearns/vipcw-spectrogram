@@ -34,14 +34,14 @@ void cbWrite(CircularBuffer *cb, float *elem) {
     if (cb->count == cb->size)
         cb->start = (cb->start + 1) % cb->size; /* full, overwrite */
     else
-        ++ cb->count;
+        ++cb->count;
 }
 
 /* Read oldest element. App must ensure !cbIsEmpty() first. */
 void cbRead(CircularBuffer *cb, float *elem) {
     *elem = cb->fbuffer[cb->start];
     cb->start = (cb->start + 1) % cb->size;
-    -- cb->count;
+    --cb->count;
 }
 
 void empty_stdin(){
@@ -53,28 +53,42 @@ void empty_stdin(){
 int main(){
     CircularBuffer cb;
     cbInit(&cb, 10);
-    // float a = 5, b = 10, c = 15, d = 20;
-    // cbWrite(&cb, &a);
-    // cbWrite(&cb, &b);
-    // cbWrite(&cb, &c);
-    // cbWrite(&cb, &d);
 
     while(1){
         float buff[50];
+        // char buff[50];
         empty_stdin();
         sleep(1.5);
         int n = read(fileno(stdin), buff, cb.size);
-        buff[n] = '\0';
-        
+        printf("No. of bytes read: %d\n", n);
+        // buff[n] = '\0';
+/*
+        // char str[100];
+        int i = 0;        
+
+        while(i < cb.size){
+            // sprintf(str, "%f\t", buff[i]);
+            // if(!(i%5)) sprintf(str, "\n");
+            printf("%f\t", *(buff+i*sizeof(float)));
+            if(!(i%5)) printf("\n");
+            ++i;
+        }
+        printf("\n");
+        // printf("%s\n", str);
+*/        
         int i = 0;
-        while(buff[i] != 0){
+        while(i < cb.size){
             cbWrite(&cb, &buff[i]);
             i++;
         }
 
         while(!cbIsEmpty(&cb)){
             float *c;
+            printf("cb.count is %d\n", cb.count);
+            printf("cb.start is %d\n", cb.start);
+            printf("cb.fbuffer[cb.start] is %f\n", cb.fbuffer[cb.start]);
             cbRead(&cb, c);
+            printf("here DOS\n");
             printf("%f", *c);
         }
 
