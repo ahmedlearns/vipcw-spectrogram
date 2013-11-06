@@ -40,13 +40,23 @@ void cbWrite(CircularBuffer *cb, float *elem) {
 /* Read oldest element. App must ensure !cbIsEmpty() first. */
 void cbRead(CircularBuffer *cb, float *elem) {
     *elem = cb->fbuffer[cb->start];
-    // printf("am i here?\n");
     cb->start = (cb->start + 1) % cb->size;
     --cb->count;
 }
-
+/*
+    Look weird? Read the scanf man and see some examples:
+        http://www.cplusplus.com/reference/cstdio/scanf/
+*/
 void empty_stdin(){
     char c;
+    /* *(asterisk): indicates that the data is to be read from the stream but ignored 
+                    (i.e. it is not stored in the location pointed by an argument).
+
+        [chars]: Any number of the characters specified between the brackets.
+
+        [^chars]: Any number of characters none of them specified as characters 
+                    between the brackets.
+    */
     scanf("%c%*[^\n]", &c);
     scanf("%*c");
 }
@@ -85,15 +95,10 @@ int main(){
 
         while(!cbIsEmpty(&cb)){
             float c;
-            // printf("cb.count is %d\n", cb.count);
-            // printf("cb.start is %d\n", cb.start);
-            // printf("cb.fbuffer[cb.start] is %f\n", cb.fbuffer[cb.start]);
             cbRead(&cb, &c);
-            // printf("here DOS\n");
             printf("%f\t", c);
             if(!(cb.count%5)) printf("\n");
         }
-        // printf("\n");
 
     }
 
