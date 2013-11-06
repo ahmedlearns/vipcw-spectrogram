@@ -40,6 +40,7 @@ void cbWrite(CircularBuffer *cb, float *elem) {
 /* Read oldest element. App must ensure !cbIsEmpty() first. */
 void cbRead(CircularBuffer *cb, float *elem) {
     *elem = cb->fbuffer[cb->start];
+    // printf("am i here?\n");
     cb->start = (cb->start + 1) % cb->size;
     --cb->count;
 }
@@ -52,7 +53,7 @@ void empty_stdin(){
 
 int main(){
     CircularBuffer cb;
-    cbInit(&cb, 10);
+    cbInit(&cb, 20);
 
     while(1){
         float buff[50];
@@ -83,14 +84,16 @@ int main(){
         }
 
         while(!cbIsEmpty(&cb)){
-            float *c;
-            printf("cb.count is %d\n", cb.count);
-            printf("cb.start is %d\n", cb.start);
-            printf("cb.fbuffer[cb.start] is %f\n", cb.fbuffer[cb.start]);
-            cbRead(&cb, c);
-            printf("here DOS\n");
-            printf("%f", *c);
+            float c;
+            // printf("cb.count is %d\n", cb.count);
+            // printf("cb.start is %d\n", cb.start);
+            // printf("cb.fbuffer[cb.start] is %f\n", cb.fbuffer[cb.start]);
+            cbRead(&cb, &c);
+            // printf("here DOS\n");
+            printf("%f\t", c);
+            if(!(cb.count%5)) printf("\n");
         }
+        // printf("\n");
 
     }
 
