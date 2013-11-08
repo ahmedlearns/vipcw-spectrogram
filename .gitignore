@@ -9,9 +9,10 @@
 */sample.wav
 */sendfftw
 */*.o
+*/*.out
 */*~
-*exe
+*.exe
 */sender_child
 */cb
 */cb_child
-sender/sender.wav
+
