@@ -17,7 +17,13 @@ nb: nonblock_stdin.c
 select: select_stdin.c
 	$(CC) select_stdin.c -o select_stdin.out
 
+sel: sel_example.c
+	$(CC) sel_example.c -o sel_example.out
+	$(CC) sel_main.c -o sel_main.out
+
+term: terminal_fu.c
+	$(CC) terminal_fu.c -o term_fu.out
+
 clena:
 clean:
-	rm -rf sender sender_child cb_child cb sender.wav nb nb_new *out
-	rm -rf sender.exe sender_child.exe cb_child.exe cb.exe
+	rm -rf sender sender_child sender.wav *out *exe
