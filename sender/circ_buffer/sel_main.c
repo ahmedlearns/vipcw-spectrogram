@@ -14,7 +14,7 @@ int main(int argc, char**argv){
 	while(1){
 		putchar(x++);
 		// usleep(1000);
-        sleep(1);
+        // sleep(1);
 	}
 
     // char syscall[512];

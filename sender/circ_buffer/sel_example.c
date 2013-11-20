@@ -6,16 +6,23 @@
   then change it up by doing different frequencies following by more of the same frequency, 
   to see how quickly the values popping up become 0 again. :)
 
+  http://stackoverflow.com/questions/717572/how-do-you-do-non-blocking-console-i-o-on-linux-in-c?lq=1
+  http://stackoverflow.com/questions/315111/cross-platform-linux-win32-nonblocking-c-io-on-stdin-stdout-stderr?rq=1
+  http://stackoverflow.com/questions/6107038/reading-from-stdin-using-select-in-a-nonblocking-way
+
 */
 
 
 #include <sys/select.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 
-#define BUFLEN 10
+
+#define BUFLEN 1
   
 char buf[BUFLEN];
 
@@ -34,6 +41,7 @@ void flush(fd_set* rfds, struct timeval* tv){
   while(FD_ISSET(STDIN_FILENO, rfds)){
     n = read(fileno(stdin), buf, BUFLEN);
     count += n;
+    printf("In flush(): flushed %d bytes...\n", n);
   }
   printf("STDIN is empty, flushed %d bytes.\n", count);
 }
@@ -50,54 +58,37 @@ int main()
   fd_set rfds;
   struct timeval tv;
   int retval;
-  // char throwaway[1000];
-  // reset(&rfds);
-  tv.tv_sec = 2;
+  tv.tv_sec = 0;
   tv.tv_usec = 0;
 
+  // setbuf(stdin, NULL);
+  // fcntl(STDIN_FILENO, F_SETFL, fcntl(0, GETFL) | O_NONBLOCK);
+
   int n, i = 0;
-  // int flush = 1;
+  // int empty = 0;
   while(1) {
 
-    flush(&rfds, &tv);
-    reset(&rfds, &tv);
-    while(FD_ISSET(STDIN_FILENO, &rfds)){
-      n = read(fileno(stdin), buf, BUFLEN);
-      printf(">>>Read %d bytes from stdin.\n", n);
-    }
+    // if (!empty){
+        reset(&rfds, &tv);
+        while(FD_ISSET(STDIN_FILENO, &rfds)){
+            n = read(fileno(stdin), buf, BUFLEN);
+            printf(">>>Read %d byte(s) from stdin: %c\n", n, buf[0]);
+            sleep(5);
 
-      // if(!flush && !FD_ISSET(STDIN_FILENO, &rfds) ){
-      //   flush = 1;
-      //   reset(&rfds);
-      //   select(STDIN_FILENO + 1, &rfds, NULL, NULL, &tv);
-      //   while (FD_ISSET(STDIN_FILENO, &rfds)){
-      //       if (fgets(buf, BUFLEN, stdin)) {
-      //           printf("Line number: %d\t DATA: ", ++i);
-      //           printf("%s\n", buf);
-      //       }
-      //       usleep(1000);
-      //   }
-      // } else if (flush){
-      //     reset(&rfds);
-      //     retval = select(STDIN_FILENO + 1, &rfds, NULL, NULL, &tv);
-      //     if (FD_ISSET(STDIN_FILENO, &rfds)) {              
-      //         fgets(throwaway,1000, stdin);
-      //         printf("NOT SET: %s i is %d\n", throwaway, ++i);
-      //         // if (fgets(buf, BUFLEN, stdin)) {
-      //         //       printf("%s\n", buf);
-      //               /* With this sleep, the loop keeps going for more iterations
-      //                   My hypothesis is that when the select catches up with stdin, nothing
-      //                   else is read in, meaning stdin is no longer a part of the rfds set.
-      //               */
-      //               // usleep(1000);
-      //               // printf("%d %s\n",__LINE__ ,buf);
-      //           // if (strncmp(buf, "exit", 4) == 0)
-      //           //       exit(0);
-      //          // }
-      //      } else {
-      //           flush = 0;
-      //      }
-      // }
+            // flush(&rfds, &tv);
+            // __fpurge(stdin);
+            
+            /*int c = getchar();
+            while(c != EOF && c != '\n')
+                c = getchar();*/
+        }
+    //     }
+    //     empty = 1;
+    // } else {
+    //     printf("Going to flush stdin.\n");
+    //     flush(&rfds, &tv);
+    //     empty = 0;
+    // }
   }
 
 }
