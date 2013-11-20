@@ -40,6 +40,7 @@ int shift();
 struct sockaddr_in serv_addr, cli_addr;
 
 struct fft_header header;
+struct fft_header tempHeader;
 
 struct pixel
 {
@@ -126,6 +127,8 @@ int main(int argc, char *argv[])
     	GtkWidget *window;
 	int i, j, k;
 	count = 0;
+	struct hostent *server;
+	int sync = 0;
 
 	/*initiate gtk*/
 	gtk_init(&argc, &argv);
@@ -138,7 +141,12 @@ int main(int argc, char *argv[])
     	g_signal_connect(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit),NULL);
     	gtk_widget_show_all(window);
 	/*END*/
-
+	
+	if (argc < 2)
+	{
+	     fprintf(stderr,"ERROR, no host provided\n");
+	     exit(1);
+	}
 	/*Initialize socket*/
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -147,17 +155,41 @@ int main(int argc, char *argv[])
     	bzero((char *) &serv_addr, sizeof(serv_addr));
     	port_num = 51717;
     	serv_addr.sin_family = AF_INET;
-    	serv_addr.sin_addr.s_addr = INADDR_ANY; 
+    	server = gethostbyname(argv[1]);
+    	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
     	serv_addr.sin_port = htons(port_num);
-    	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-        	error1("ERROR on binding");
-    	listen(sockfd,5);
-    	clilen = sizeof(cli_addr);
+    	
+    	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+    	{
+	        error1("Error on connect(), exitting");
+	        exit(-1);
+    	}
 	
-    	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    	if (newsockfd < 0)
-       		error1("ERROR on accept");
-
+	//Synchronization
+	fprintf(stderr, "Syncing... ");  
+	
+	do
+	{
+		n = read(newsockfd, &header, sizeof(struct fft_header));
+		for(i = 0; i < sizeof(struct fft_header)-7; i++)
+		{
+			if(header.constSync != 0xACFDFFBC)
+			{
+				memcpy(tempHeader, ((char*)header) + 1, sizeof(struct fft_header) - 1 - i);
+				memcpy(header, tempHeader, sizeof(struct fft_header));
+			}
+			else
+			{
+				sync = 1;
+				n = read(newsockfd, &header + sizeof(struct fft_header) - i, sizeof(struct fft_header));
+				break;
+			}
+					
+		}
+	}while(!sync);
+	
+	fprintf(stderr, "Synced... ");  
+	
 	//First Header
     	fprintf(stderr, "Reading header... ");  
     	n = read(newsockfd, &header, sizeof(struct fft_header));
