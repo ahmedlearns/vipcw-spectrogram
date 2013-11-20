@@ -13,16 +13,11 @@ int main(){
 	char buf2[BUFLEN];
 	int repeat = 1;
 
-	// try with the select..
-
-	// int flags = fcntl(stdin, F_GETFL);  /* get current file status flags */
- //    flags |= O_NONBLOCK;                /* turn off blocking flag */
- //    fcntl(stdin, F_SETFL, flags);       /* set up non-blocking read */
 
 	while(1){
 		while(repeat != 0){
 			int n = read(fileno(stdin), buf, BUFLEN);
-			printf("    Read %d bytes\n", n);
+			printf("\tRead %d bytes\n", n);
 			if(n == 1){
 				bcopy(buf, buf2, BUFLEN);
 			} else {
