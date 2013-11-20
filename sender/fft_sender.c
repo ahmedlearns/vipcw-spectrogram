@@ -53,9 +53,10 @@ void error1(const char *msg)
 
 int main(int argc, char *argv[])
 {
-    int sockfd, portno, n;
-    struct sockaddr_in serv_addr;
+    int sockfd, portno, n, newsockfd;
+    struct sockaddr_in serv_addr, cli_addr;
     struct hostent *server;
+	socklen_t clilen;
 
     // char buffer[256];
     //~ if (argc < 3) {
@@ -63,30 +64,24 @@ int main(int argc, char *argv[])
        //~ exit(0);
     //~ }
     //~ portno = atoi(argv[2]);
-    if (argc < 2)
-    {
-     fprintf(stderr,"ERROR, no host provided\n");
-     exit(1);
-    }
+   
     portno = 51717;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error1("ERROR opening socket");
-    server = gethostbyname(argv[1]);
-    if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
-        exit(-1);
-    }
+    //server = gethostbyname(argv[1]);
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
-         (char *)&serv_addr.sin_addr.s_addr,
-         server->h_length);
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
-        fprintf(stderr, "Error on connect(): %s\n", strerror(errno));
-        exit(-1);
-    }
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+       	error1("ERROR on binding");
+    listen(sockfd,5);
+    clilen = sizeof(cli_addr);
+	
+    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsockfd < 0)
+    	error1("ERROR on accept");
         // error1("ERROR connecting");
     
 
@@ -130,12 +125,14 @@ int main(int argc, char *argv[])
 
     // printf("header_len is %d\n", header_len);
 
+	char junk [] = "abcdefg";
+	n = write(newsockfd, (char *) junk, sizeof(junk));
     int k = 0;
     while(1){
     //while(k < 5){
         fprintf(stderr, "Sending header... ");
 
-        n = write(sockfd, (char *) hdr, header_len);
+        n = write(newsockfd, (char *) hdr, header_len);
         fprintf(stderr, "Sent header, n = %d\n", n);
         if (n < 0) 
              error1("ERROR writing to socket");
@@ -150,12 +147,12 @@ int main(int argc, char *argv[])
         
         printf("Sending fbuffer\n");
         fprintf(stderr, "Sending data... ");
-        n = write(sockfd, fbuffer, ptsPerFFT * sizeof(float));
+        n = write(newsockfd, fbuffer, ptsPerFFT * sizeof(float));
         fprintf(stderr, "Sent data, n = %d\n", n);
         if (n < 0) 
              error1("ERROR writing to socket");
 
-        usleep(500 * 1000);
+        //usleep(500 * 1000);
         k++;
     }
     /*
@@ -183,7 +180,8 @@ int main(int argc, char *argv[])
 	///////////////////////////////////////////////////////////////////////////////////////////
     
 
-    close(sockfd);
+    close(newsockfd);
+	close(sockfd);
     return 0;
 }
 

@@ -24,8 +24,7 @@ float *buffer;
 int samp_rate;
 int CAMERA_WIDTH;
 int port_num;
-int sockfd, newsockfd;
-socklen_t clilen;
+int sockfd;
 int n;
 int count;
 int size;
@@ -37,7 +36,7 @@ int bufSize;
 int getData();
 int shift();
 
-struct sockaddr_in serv_addr, cli_addr;
+struct sockaddr_in serv_addr;
 
 struct fft_header header;
 struct fft_header tempHeader;
@@ -69,7 +68,7 @@ int getData()
 	int constant;
 
 	// get as many bytes in the socket to fill up the buffer
-	n = recv(newsockfd, tempBuf + readCount, length - readCount, MSG_DONTWAIT);	
+	n = recv(sockfd, tempBuf + readCount, length - readCount, MSG_DONTWAIT);	
 	if(n>0)
 		readCount += n;
 
@@ -152,47 +151,68 @@ int main(int argc, char *argv[])
 	
 	if (sockfd < 0)
         	error1("ERROR opening socket");
-    	bzero((char *) &serv_addr, sizeof(serv_addr));
-    	port_num = 51717;
-    	serv_addr.sin_family = AF_INET;
-    	server = gethostbyname(argv[1]);
-    	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    	serv_addr.sin_port = htons(port_num);
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    port_num = 51717;
+    serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
+    serv_addr.sin_port = htons(port_num);
     	
-    	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-    	{
-	        error1("Error on connect(), exitting");
-	        exit(-1);
-    	}
+    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+    {
+		error1("Error on connect(), exitting");
+	    exit(-1);
+    }
 	
 	//Synchronization
 	fprintf(stderr, "Syncing... ");  
 	
+	n = read(sockfd, &header, sizeof(struct fft_header));
+	if( n == 0)
+	{
+		printf("Sender has closed connection1\n");
+		exit(0);
+	}
 	do
 	{
-		n = read(newsockfd, &header, sizeof(struct fft_header));
 		for(i = 0; i < sizeof(struct fft_header)-7; i++)
 		{
 			if(header.constSync != 0xACFDFFBC)
 			{
-				memcpy(tempHeader, ((char*)header) + 1, sizeof(struct fft_header) - 1 - i);
-				memcpy(header, tempHeader, sizeof(struct fft_header));
+				memcpy(&tempHeader, ((char*)(&header))+ 1, sizeof(struct fft_header) - 1 - i);
+				memcpy(&header, &tempHeader, sizeof(struct fft_header));
+			
 			}
 			else
 			{
 				sync = 1;
-				n = read(newsockfd, &header + sizeof(struct fft_header) - i, sizeof(struct fft_header));
+				i++;
 				break;
-			}
-					
+			}	
+			memset(&tempHeader, 0, sizeof(struct fft_header));
+			printf("%0x\n", header.constSync);		
 		}
+		if(i > 1)
+		{
+			n = read(sockfd, &header + sizeof(struct fft_header) - 1- i,i - 1);
+			if( n == 0)
+			{
+				printf("Sender has closed connection1\n");
+				exit(0);
+			}
+		}
+
+		
 	}while(!sync);
+
+	if(header.constSync != 0xACFDFFBC)
+			error1("ERROR reading from socket, incorrect header placement\n");
 	
-	fprintf(stderr, "Synced... ");  
+	fprintf(stderr, "Synced... \n");  
 	
+	/*
 	//First Header
     	fprintf(stderr, "Reading header... ");  
-    	n = read(newsockfd, &header, sizeof(struct fft_header));
+    	n = read(sockfd, &header, sizeof(struct fft_header));
     	if (n < 0)
        		error1("ERROR reading from socket");
     	else if (n > 0)
@@ -206,6 +226,7 @@ int main(int argc, char *argv[])
 		printf("Sender has closed connection\n");
 		exit(0);
 	}
+	*/
 
 	//Initializing structures
 	samp_rate = header.ptsPerFFT;
@@ -220,7 +241,7 @@ int main(int argc, char *argv[])
 
 	//First Data
 	fprintf(stderr, "Reading data... ");
-    	n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
+    	n = read(sockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
     	if (n < 0)
     		error1("ERROR reading from socket");
 	else if( n == 0)
