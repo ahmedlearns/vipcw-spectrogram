@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BUFLEN 1000
+#define BUFLEN 10
 
 void reset(fd_set* rfds)
 {
@@ -23,16 +23,37 @@ void reset(fd_set* rfds)
   FD_SET(STDIN_FILENO, rfds);
 }
 
+/*
+ *  1) flush stdin
+ *  2) read N bytes from stdin
+ *  3) sleep for tv seconds
+ *  4) repeat
+ *
+ */
 int main()
 {
   fd_set rfds;
   struct timeval tv;
   int retval;
   char buf[BUFLEN];
-  char throwaway[1000000];
+  char throwaway[1000];
   reset(&rfds);
   tv.tv_sec = 2;
   tv.tv_usec = 0;
+
+
+  // while(1){
+  //   sleep(5);
+  //   /*   FLUSH stdin   */
+  //   reset(&rfds);
+  //   select(STDIN_FILENO + 1, &rfds, NULL, NULL, &tv);
+  //   while((FD_ISSET(STDIN_FILENO, &rfds)){
+  //       if (fgets(throwaway, 10, stdin)) {
+  //               printf("Flushing STDIN");
+  //       }
+  //   }
+  // }
+
 
   int i = 0;
   int flush = 1;
@@ -46,7 +67,7 @@ int main()
                 printf("Line number: %d\t DATA: ", ++i);
                 printf("%s\n", buf);
             }
-            // usleep(1000);
+            usleep(1000);
         }
       } else if (flush){
           reset(&rfds);

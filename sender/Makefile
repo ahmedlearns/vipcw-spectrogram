@@ -17,9 +17,10 @@ nb: nonblock_stdin.c
 select: select_stdin.c
 	$(CC) select_stdin.c -o select_stdin.out
 
-sel: sel_example.c
+sel: sel_example.c nb_read.c
 	$(CC) sel_example.c -o sel_example.out
 	$(CC) sel_main.c -o sel_main.out
+	$(CC) nb_read.c -o nb_read.out
 
 term: terminal_fu.c
 	$(CC) terminal_fu.c -o term_fu.out
