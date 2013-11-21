@@ -21,108 +21,39 @@
 #define WAV_HEADER_SIZE 44    
 
 
-void genfft(int N, double* in, double* out)
+void genfft(int N, double* in, double** out)
 {
     // printf("IN: monofft:genFFT(): sizeof(cb->fbuffer)=%d\n", sizeof(cb->fbuffer));
 
-    int i=0,j=0,k=0,l=0;
+    int i;
     double (*X)[2];                  /* pointer to frequency-domain samples */   
     double x[N][2];             
     double mag, min, max, mag_norm;                 
-    X = malloc(2 * N * sizeof(double));  
-    while (i<N) {
-        x[i][1]=0;
-        i++;
+    X = (double*) malloc(N * sizeof(double)); // previously: malloc(2 * N * sizeof(double)) 
+
+    for(i = 0; i < N; i++){
+        x[i][0] = in[i];
+        x[i][1] = 0;
+    }
+    
+    fft(N, x, X);
+    min = 0;
+    max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
+
+    for(i=0; i<N; i++) {
+        mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
+        if(mag > max) 
+            max = mag;
+        if(mag < min) 
+            min = mag;
+    }
+    
+    for(i=0; i<N; i++) {
+        mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
+        mag_norm = (mag - min)/(max - min);
+        (*out)[i] = mag_norm;
     }
 
-    
-    int lSize = sizeof(float)*N; //position of the current stream (It's at the end because of fseek())
-	
-    typedef struct wave {
-        int chunkID;
-        int chunkSize;
-        int format;
-        int subChunk1ID;
-        int subChunk1size;
-        int audio_num_ch;
-        int sampleRate;
-        int byteRate;
-        int bckAli_bitPs;
-        int subChunk2ID;
-        int subChunk2size;
-        int  data[(lSize-40)/4];
-    } wave;
-    wave * mywave;
-    mywave=(wave *) malloc( lSize);
-
-    /* Throw out WAVE header */
-	memcpy(mywave, cb->fbuffer, lSize);	
-	
-    //fread(mywave,1,lSize,f);
-    // printf("size ............. %d\n",lSize);
-    // printf("size ......double....... %lu\n",(sizeof(double)*128));
-    // printf("size ......double....... %lu\n",(sizeof(float)*128));
-
-    int mask=65535;
-    int  leftVa;
-	while (i<N) {    
-	//while (i<((lSize-40)/4)) {
-
-        leftVa=(mywave->data[i+1]<<16) | (mywave->data[i] & mask);
-        mywave->data[j]=leftVa;
-		// x[k][0] = cb->fbuffer[i];
-        /* LEFT CHANNEL DATA GOES HERE */
-        x[k][0]=leftVa;
-        //wavbuffer[k] = leftVa;
-        j++;
-        k++;
-        //~ printf("k is %d and N is %d\n", k, N);
-        if (k==N) {
-            fft(N, x, X);
-            min = 0;
-            max = sqrt((X[0][0]*X[0][0])+(X[0][1]*X[0][1]));
-            for(l=0; l<N; l++) {
-                mag=sqrt((X[l][0]*X[l][0])+(X[l][1]*X[l][1]));
-                if(mag > max) {
-                    max = mag;
-                }
-                if(mag < min) {
-                    min = mag;
-                }
-            }
-
-
-            for(l=0; l<N; l++) {
-                mag=sqrt((X[l][0]*X[l][0])+(X[l][1]*X[l][1]));
-
-                mag_norm = (mag - min)/(max - min);
-                cb->fbuffer[l] = mag_norm;
-
-            }
-            k=0;
-        }
-        i=i+2;
-    }
-
-
-    
-   // for(i = 0; i < N; i++)
-      //  printf("wavbuffer[%d] is %12d, cb->fbuffer[%d] is %12f\n", i, wavbuffer[i], i, cb->fbuffer[i]);
-
-
-   // fwrite(mywave,1,(lSize/2)+22,f1);
-    //fclose (f);
-    // fclose (f2);
     free(X);
     return;
 }
-
-/*
-int main(){
-    float f[256];
-    genfft(f, 256);
-    int i;
-    for(i = 0; i < 256; i++) 
-        printf("f[%d] is %12f\n", i, f[i]);
-}
-*/

@@ -6,8 +6,6 @@
  * Author: Ahmed Ismail
  */
 
- typedef short signed int int2;
-
  /* Circular buffer object */
 typedef struct {
     int         size;   /* maximum number of elements           */
@@ -32,7 +30,7 @@ void cbWrite(CircularBuffer *cb, float *elem);
 void cbRead(CircularBuffer *cb, float *elem);
 
 // void init_fft(int, int, int, struct timeval, int);
-void init_fft(int, int, int, int, int);
+void init_fft(int, int, int, int, int, int);
 
 //void updateTime(struct timeval);
 
