@@ -26,41 +26,8 @@
 #include "monofft.h"
 
 struct fft_header * hdr;
-float* fbuffer;
-
-void cbFree(CircularBuffer *cb) {
-    free(cb->fbuffer); /* OK if null */ }
-
-void cbInit(CircularBuffer *cb, int size) {
-    cb->size  = size;
-    cb->start = 0;
-    cb->count = 0;
-    cb->fbuffer = (float*) calloc(cb->size, sizeof(float));
-}
- 
-int cbIsFull(CircularBuffer *cb) {
-    return cb->count == cb->size; }
- 
-int cbIsEmpty(CircularBuffer *cb) {
-    return cb->count == 0; }
-
-/* Write an element, overwriting oldest element if buffer is full. App can
-   choose to avoid the overwrite by checking cbIsFull(). */
-void cbWrite(CircularBuffer *cb, float *elem) {
-    int end = (cb->start + cb->count) % cb->size;
-    cb->fbuffer[end] = *elem;
-    if (cb->count == cb->size)
-        cb->start = (cb->start + 1) % cb->size; /* full, overwrite */
-    else
-        ++ cb->count;
-}
-
-/* Read oldest element. App must ensure !cbIsEmpty() first. */
-void cbRead(CircularBuffer *cb, float *elem) {
-    *elem = cb->fbuffer[cb->start];
-    cb->start = (cb->start + 1) % cb->size;
-    -- cb->count;
-}
+// float* fbuffer;
+float fb;
 
 //void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 //		struct timeval timestamp, int sampFreq)
@@ -94,24 +61,24 @@ int main(int argc, char *argv[])
 {
     printf("IN: fft_sender:main()\n");
     // int n = Write(get_samples(256), argv[1]);
-    if(!Write(argv[1], 256));
+    if(!write_audio(argv[1], 256));
         fprintf(stderr, "ERROR, write failed\n");
     return 0;
 }
 
 /* Empty out the stdin buffer to the latest N samples */
 // float* get_samples(int N)
-// void get_samples(int N)
-int get_samples(CircularBuffer *cb)
+void get_samples(int N, double* dbuffer)
+// int get_samples(CircularBuffer *cb)
 {
-    int N = cb->size;
-    float elem[1];
+    // int N = cb->size;
+    // float elem[1];
 
     printf("IN: fft_sender:get_samples(%d)\n", N);
 
-    int flags = fcntl(stdin, F_GETFL);  /* get current file status flags */
-    flags |= O_NONBLOCK;                /* turn off blocking flag */
-    fcntl(stdin, F_SETFL, flags);       /* set up non-blocking read */
+    // int flags = fcntl(stdin, F_GETFL);  /* get current file status flags */
+    // flags |= O_NONBLOCK;                /* turn off blocking flag */
+    // fcntl(stdin, F_SETFL, flags);       /* set up non-blocking read */
 
     static int init_samples = 0;
     if(!init_samples)
@@ -124,65 +91,33 @@ int get_samples(CircularBuffer *cb)
         int endTrans = -1;
         init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq, endTrans);
         init_samples = 1;
+
+        // fbuffer = &fb;
     }
 
-    int n;
-    while(0 < (n = fgets(elem, sizeof(float), stdin)))
-        cbWrite(cb, elem);
+    int n, i = 0, j;
+    // double dbuffer[N];
+    for( j = 0; j < N; j++){
+        if(sizeof(float) == fgets(&fb, sizeof(float), stdin)){
+            // Only read in left channel data..
+            if(j & 1)
+                dbuffer[j++] = fb;            
+        } else {
+            err("Error reading audio data");
+        }
+    }
 
-    // float a[N], b[N];
-    // int na, nb, n = 0;
-    // // float *ptr = a;
-    // fbuffer = a;
-    // na = fgets(a, N*sizeof(float), stdin);
-    // nb = fgets(b, N*sizeof(float), stdin);
-    // while(a == N && b == N){
-    //     na = fgets(a, N*sizeof(float), stdin);
-    //     if(a != N){
-    //         fbuffer = b;
-    //         break;
-    //     }
-    //     nb = fgets(b, N*sizeof(float), stdin);
-    //     if(b != N){
-    //         fbuffer = a;
-    //         break;
-    //     }
-    // }
-
-
-    // While N samples have not been read:
-    // while(n != N){
-    //     n =  fgets(fbuffer, N*sizeof(float), stdin);
-    //     printf("IN: fft_sender:get_samples(): reading %d bytes from stdin\n", n);
-    //     if(n == N){
-    //         if(fbuffer == a)
-    //             fbuffer = b;
-    //         else
-    //             fbuffer = a;
-    //         //fbuffer = (fbuffer == a) ? b : a;
-    //         // if(fbuffer == a) fbuffer = b;
-    //         // else fbuffer = a;
-    //     } else {
-    //         return (fbuffer == a) ? b : a;
-    //     }
-    // }
-    // int rcvd_a, rcvd_b;
-    // rcvd_a = fgets(buff_a, ptsPerFFT*sizeof(float), (int) stdin);
-    // rcvd_b = fgets(buff_b, ptsPerFFT*sizeof(float), (int) stdin);
-    // if(rcvd_a < ptsPerFFT*sizeof(float))
-    //     return 'a';
-    // if(rcvd_b < ptsPerFFT*sizeof(float))
-    //     return 'b';
-    // return 'x';
-
+    // int n;
+    // while(0 < (n = fgets(elem, sizeof(float), stdin)))
+    //     cbWrite(cb, elem);
 }
 
-int Write(char* host, int N)
+int write_audio(char* host, int N)
 {
-    printf("IN: fft_sender:Write(%s, %d)\n", host, N);
+    printf("IN: fft_sender:write_audio(%s, %d)\n", host, N);
 
-    CircularBuffer cb;
-    cbInit(&cb, N);
+    double dbuffer[N];
+    double* out;
 
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
@@ -218,7 +153,7 @@ int Write(char* host, int N)
 
         printf("IN: fft_sender:Write(): getting %d samples..\n", N);
         
-        get_samples(&cb);
+        get_samples(N, dbuffer);
 
         fprintf(stderr, "Sending header... ");
         n = write(sockfd, (char *) hdr, sizeof(struct fft_header));
@@ -226,7 +161,7 @@ int Write(char* host, int N)
         if (n < 0) 
              err("ERROR writing to socket");
         
-        genfft(&cb, hdr->ptsPerFFT);
+        genfft(dbuffer, out);
         
         printf("Sending fbuffer\n");
         fprintf(stderr, "Sending data... ");
