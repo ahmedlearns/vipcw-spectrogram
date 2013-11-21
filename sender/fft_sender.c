@@ -30,27 +30,27 @@
 struct fft_header * hdr;
 
 //void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
-//		struct timeval timestamp, int sampFreq)
+//      struct timeval timestamp, int sampFreq)
 void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
-			 int sampFreq, int fftRate, int endTrans)
+             int sampFreq, int fftRate, int endTrans)
 {
     printf("IN: fft_sender:init_fft()\n");
-	hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
-	hdr->constSync = 0xACFDFFBC;
-	hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
-	hdr->ptsPerFFT = ptsPerFFT;
-	hdr->samplesToNextFFT = samplesToNextFFT;
-	//updateTime(timestamp);
-	hdr->sampleRate = sampFreq;
-	// -1 when ongoing, 1 to signal end of transmission
+    hdr = (struct fft_header*) malloc(sizeof(struct fft_header));
+    hdr->constSync = 0xACFDFFBC;
+    hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(struct fft_header);
+    hdr->ptsPerFFT = ptsPerFFT;
+    hdr->samplesToNextFFT = samplesToNextFFT;
+    //updateTime(timestamp);
+    hdr->sampleRate = sampFreq;
+    // -1 when ongoing, 1 to signal end of transmission
     hdr->fftRate = fftRate;
-	hdr->endTrans = endTrans;
+    hdr->endTrans = endTrans;
 
-	// RETURN int ERROR CODES
+    // RETURN int ERROR CODES
 }
 
 // void updateTime(struct timeval timestamp){
-	// gettimeofday(hdr->timestamp, NULL);
+    // gettimeofday(hdr->timestamp, NULL);
 // }
 
 void err(const char *msg)

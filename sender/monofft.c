@@ -16,10 +16,7 @@
 #include <fcntl.h>
 #include <errno.h>    
 #include "fft.h"
-#include "fft_sender.h"
-
-#define WAV_HEADER_SIZE 44    
-
+#include "fft_sender.h" 
 
 void genfft(int N, double* in, double** out)
 {
