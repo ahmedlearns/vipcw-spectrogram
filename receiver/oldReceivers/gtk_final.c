@@ -17,7 +17,6 @@
 #define REDMAC(x) (MIN((MAX((4*((x)-0.25)), 0.)), 1.) * 255)
 #define GREENMAC(x) (MIN((MAX((4*fabs((x)-0.5)-1.), 0.)), 1.) * 255)
 
-
 GtkWidget *image;
 char buff[20];
 float *buffer;

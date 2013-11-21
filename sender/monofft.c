@@ -38,6 +38,7 @@ void genfft(CircularBuffer *cb, int N)
         i++;
     }
 
+<<<<<<< HEAD
     /* Execute arecord to start recording from the make with the separate-channels option */
     // char syscall[512];
     // sprintf(syscall, "arecord -I -f S16_LE -r44100 -D plughw:CARD=WEBCAM,DEV=0  | sender %s", serverIP);
@@ -45,6 +46,16 @@ void genfft(CircularBuffer *cb, int N)
     
     //FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
     //if(!f) printf("Error reading from wavePipe");
+=======
+    mkfifo("wavePipe", S_IRWXO);
+    system("arecord -d1 -r44100  -D plughw:CARD=Intel,DEV=0  wavePipe");
+    // system("arecord -d1 -r4000 -D sysdefault:CARD=U0x46d0x80a  wavePipe");
+    int lSize;
+    FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
+	//usleep(10000);
+    //FILE * f = fopen("chirp10-500Hz.wav", "r"); //opening the 2 channels wave file
+    if(!f) printf("Error reading from wavePipe");
+>>>>>>> 140f706699ef0a828e155e200a2713712849775e
 
     // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
     //just to see what we're dealing with
