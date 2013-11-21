@@ -25,9 +25,10 @@
 #include "fft_socket_header.h"
 #include "monofft.h"
 
+#define WAV_HEADER_SIZE 48  
+
 struct fft_header * hdr;
-// float* fbuffer;
-float fb;
+char channel_sample;
 
 //void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT, 
 //		struct timeval timestamp, int sampFreq)
@@ -51,6 +52,7 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
 // void updateTime(struct timeval timestamp){
 	// gettimeofday(hdr->timestamp, NULL);
 // }
+
 void err(const char *msg)
 {
     fprintf(stderr, "%s\n", msg);
@@ -66,20 +68,23 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-/* Empty out the stdin buffer to the latest N samples */
-// float* get_samples(int N)
+/** 
+ * Empty out the stdin buffer to the latest N samples.
+ * 
+ *  Assuming samples are 16 bits long. Each sample contains both channels: 
+ *      (LEFT|RIGHT)(LEFT|RIGHT)
+ *      \  16 bits /\  16 bits /
+ *
+ *  Seperate channels by only taking the left channel. The sample data is a 2's complement signed integer. 
+ *      Use short signed int (or int2). See fft_sender.h
+ *              OR
+ *      Use char's to only read left channel data.
+ *
+ */
 void get_samples(int N, double* dbuffer)
-// int get_samples(CircularBuffer *cb)
 {
-    // int N = cb->size;
-    // float elem[1];
 
     printf("IN: fft_sender:get_samples(%d)\n", N);
-
-    // int flags = fcntl(stdin, F_GETFL);  /* get current file status flags */
-    // flags |= O_NONBLOCK;                /* turn off blocking flag */
-    // fcntl(stdin, F_SETFL, flags);       /* set up non-blocking read */
-
     static int init_samples = 0;
     if(!init_samples)
     {
@@ -92,16 +97,19 @@ void get_samples(int N, double* dbuffer)
         init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampFreq, endTrans);
         init_samples = 1;
 
-        // fbuffer = &fb;
+        char discard[48];
+        /* Discard Wave header */
+        if(WAV_HEADER_SIZE != fgets(discard, WAV_HEADER_SIZE, stdin))
+            err("Error discarding Wave header");
     }
 
     int n, i = 0, j;
     // double dbuffer[N];
     for( j = 0; j < N; j++){
-        if(sizeof(float) == fgets(&fb, sizeof(float), stdin)){
+        if(sizeof(char) == fgets(&channel_sample, sizeof(char), stdin)){
             // Only read in left channel data..
-            if(j & 1)
-                dbuffer[j++] = fb;            
+            if((j & 1) != 1)
+                dbuffer[j++] = channel_sample;            
         } else {
             err("Error reading audio data");
         }
@@ -161,7 +169,7 @@ int write_audio(char* host, int N)
         if (n < 0) 
              err("ERROR writing to socket");
         
-        genfft(dbuffer, out);
+        genfft(N, dbuffer, out);
         
         printf("Sending fbuffer\n");
         fprintf(stderr, "Sending data... ");

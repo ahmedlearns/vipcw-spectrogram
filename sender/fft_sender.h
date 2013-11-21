@@ -6,6 +6,8 @@
  * Author: Ahmed Ismail
  */
 
+ typedef short signed int int2;
+
  /* Circular buffer object */
 typedef struct {
     int         size;   /* maximum number of elements           */

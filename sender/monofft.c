@@ -18,17 +18,14 @@
 #include "fft.h"
 #include "fft_sender.h"
 
+#define WAV_HEADER_SIZE 44    
 
-void genfft(CircularBuffer *cb, int N)
+
+void genfft(int N, double* in, double* out)
 {
-    printf("IN: monofft:genFFT(): sizeof(cb->fbuffer)=%d\n", sizeof(cb->fbuffer));
-
-    /* Check size of buffer */
-    if(sizeof(cb->fbuffer)/sizeof(float) != N)
-        err("cb->fbuffer does not contain enough samples");
+    // printf("IN: monofft:genFFT(): sizeof(cb->fbuffer)=%d\n", sizeof(cb->fbuffer));
 
     int i=0,j=0,k=0,l=0;
-    //int wavbuffer[N];
     double (*X)[2];                  /* pointer to frequency-domain samples */   
     double x[N][2];             
     double mag, min, max, mag_norm;                 
@@ -38,19 +35,8 @@ void genfft(CircularBuffer *cb, int N)
         i++;
     }
 
-    /* Execute arecord to start recording from the make with the separate-channels option */
-    // char syscall[512];
-    // sprintf(syscall, "arecord -I -f S16_LE -r44100 -D plughw:CARD=WEBCAM,DEV=0  | sender %s", serverIP);
-    // system(syscall);
     
-    //FILE * f = fopen("wavePipe", "r"); //opening the 2 channels wave file
-    //if(!f) printf("Error reading from wavePipe");
-
-    // FILE * f2 = fopen ("chirpFFT.txt", "w"); // a text file that will have the left channel sound data,
-    //just to see what we're dealing with
-    //fseek (f , 0 , SEEK_END);
     int lSize = sizeof(float)*N; //position of the current stream (It's at the end because of fseek())
-    //rewind (f);
 	
     typedef struct wave {
         int chunkID;
@@ -69,6 +55,7 @@ void genfft(CircularBuffer *cb, int N)
     wave * mywave;
     mywave=(wave *) malloc( lSize);
 
+    /* Throw out WAVE header */
 	memcpy(mywave, cb->fbuffer, lSize);	
 	
     //fread(mywave,1,lSize,f);
