@@ -18,15 +18,15 @@
 #include "fft.h"
 #include "fft_sender.h" 
 
-void genfft(int N, double* in, double** out)
+void genfft(int N, double* in, double* out)
 {
-    // printf("IN: monofft:genFFT(): sizeof(cb->fbuffer)=%d\n", sizeof(cb->fbuffer));
+    printf("IN: monofft:genFFT() \n");
 
     int i;
     double (*X)[2];                  /* pointer to frequency-domain samples */   
     double x[N][2];             
     double mag, min, max, mag_norm;                 
-    X = (double*) malloc(N * sizeof(double)); // previously: malloc(2 * N * sizeof(double)) 
+    X = (double*) malloc(2 * N * sizeof(double));
 
     for(i = 0; i < N; i++){
         x[i][0] = in[i];
@@ -37,18 +37,19 @@ void genfft(int N, double* in, double** out)
     min = 0;
     max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
 
-    for(i=0; i<N; i++) {
+    for(i=0; i < N; i++) {
         mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
         if(mag > max) 
             max = mag;
         if(mag < min) 
             min = mag;
     }
+    printf("\t NO SEG FAULT YET\n");
     
     for(i=0; i<N; i++) {
         mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
         mag_norm = (mag - min)/(max - min);
-        (*out)[i] = mag_norm;
+        out[i] = mag_norm;
     }
 
     free(X);

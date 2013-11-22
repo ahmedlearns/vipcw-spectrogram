@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
     // error1("ERROR reading from socket");
     //printf("Here is the message: %s\n",buffer);
 //////////////////////////////////////////////////////////////////  
-    float fbuffer[256];
+    double dbuffer[256];
     while(1){
         fprintf(stderr, "Reading header... ");
         n = read(newsockfd, &header, sizeof(struct fft_header)); 
-        fprintf(stderr, "Read header, n = %d\n", n);       
+        printf("Read header, n = %d\n", n);       
         if (n < 0)
             error1("ERROR reading from socket");
         else if (n > 0){
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
             
 
         fprintf(stderr, "Reading data... ");
-        n = read(newsockfd, (char *) fbuffer, header.ptsPerFFT * sizeof(float));
+        n = read(newsockfd, dbuffer, header.ptsPerFFT * sizeof(double));
         fprintf(stderr, "Read data, n = %d\n", n);    
         if (n < 0)
             error1("ERROR reading from socket");
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
             int i;
             printf("ptsPerFFT: %d\n", header.ptsPerFFT);
             for(i = 0; i < header.ptsPerFFT; i++)
-                printf("%d: %f\n", i+1, fbuffer[i]);
+                printf("%d: %f\n", i+1, dbuffer[i]);
         }
         else{
             printf("Sender has closed connection\n");
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
         error1("ERROR reading from socket: Incorrect header placement\n");
     
     
-    n = read(newsockfd, (char *) fbuffer, header.ptsPerFFT * sizeof(float));
+    n = read(newsockfd, (char *) dbuffer, header.ptsPerFFT * sizeof(float));
     if (n < 0)
         error1("ERROR reading from socket");
     */

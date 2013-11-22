@@ -37,7 +37,6 @@ void err(const char *msg)
 
 int main(int argc, char *argv[])
 {
-    hdr = (fft_header*) calloc(1, sizeof(fft_header));
 
     printf("IN: fft_sender:main()\n");
     // int n = Write(get_samples(256), argv[1]);
@@ -56,10 +55,11 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
              int sampFreq, int fftRate, int endTrans)
 {
     printf("IN: fft_sender:init_fft()\n");
+    hdr = (fft_header*) malloc(sizeof(fft_header));
     hdr->constSync = 0xACFDFFBC;
     hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(fft_header);
-    hdr->ptsPerFFT = ptsPerFFT;
     hdr->samplesToNextFFT = samplesToNextFFT;
+    hdr->ptsPerFFT = ptsPerFFT;
     //updateTime(timestamp);
     hdr->sampleRate = sampFreq;
     // -1 when ongoing, 1 to signal end of transmission
@@ -90,42 +90,51 @@ void get_samples(int N, double* dbuffer)
     {
         printf("IN: fft_sender:get_samples(%d)\n", N);
         sleep(1);
-        wave* wav_header = (wave*) malloc(sizeof(wave));
-        // int n = fgets(wav_header, 48, stdin);
-        // int n = read(fileno(stdin), wav_header, WAV_HEADER_SIZE);
+
+        char wav_header[48];
+        // wave* wav_header = (wave*) malloc(sizeof(wave));
+
+        // int n = fgets(wav_header, WAV_HEADER_SIZE, stdin);
+        int n = read(fileno(stdin), wav_header, WAV_HEADER_SIZE);
         /* Read in Wave header to set fft_header and then discard*/
-        if(WAV_HEADER_SIZE != read(fileno(stdin), wav_header, WAV_HEADER_SIZE)){
+        // if(WAV_HEADER_SIZE != read(fileno(stdin), wav_header, WAV_HEADER_SIZE)){
+        if(WAV_HEADER_SIZE != n){
             // printf("Read %d bytes into wav_header\n", n);
             err("Error discarding Wave header");
         }
 
         int bytesToNextHeader = N * sizeof(double) + sizeof(fft_header);  // total amount of space (header+data)
-        int sampleRate = wav_header->sampleRate;
+        // int sampleRate = wav_header->sampleRate;
+        int sampleRate = 22050;
         int ptsPerFFT = N;         // number of points per FFT 
         int fftRate = 10;       // 10 FFT's per second.
         int samplesToNextFFT = (sampleRate / fftRate) - ptsPerFFT;   // Num samples to the start of the next FFT
-        int endTrans = -1;
+        int endTrans = 5;
 
         init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampleRate, fftRate, endTrans);
-        
-        sleep(1);
-        free(wav_header);
+        printf("\t Back in get_samples() from init_fft()\n");
+        // sleep(1);
         init_samples = 1;
+
+        // free(wav_header);
     }
 
-    printf("IN: fft_sender:get_samples(%d)\n", N);
-    int n, i = 0, j;
+    printf("IN: fft_sender:get_samples(%d), AFTER DISCARDING WAVE HEADER\n", N);
+    int i = 0, j;
+    long long int n;
     int2 discard_sample;
     /* Read the first samplesToNextFFT # of samples to discard */
     for(j = 0; j < hdr->samplesToNextFFT; j++){
-        if(sizeof(int2) != fgets(&discard_sample, sizeof(int2), stdin))
+        if(sizeof(int2) != (n = read(fileno(stdin), &discard_sample, sizeof(int2)))){
+            printf("Discarding %lld bytes\n", n);
             err("Error discarding audio samples");
+        }
     }
 
     char channel_sample;
     /* Read the next N samples, and separate left and right channels */
     for(j = 0; j < (N*2); j++){
-        if(sizeof(char) == fgets(&channel_sample, sizeof(char), stdin)){
+        if(sizeof(char) == read(fileno(stdin), &channel_sample, sizeof(char))){
             // Only read in left channel data..
             if((j & 1) != 1)
                 dbuffer[i++] = channel_sample;            
@@ -184,11 +193,17 @@ int write_audio(char* host, int N)
         if (n < 0) 
              err("ERROR writing to socket");
         
-        genfft(N, dbuffer, &out);
+        genfft(N, dbuffer, out);
+
+        // int j;
+        // printf("Output buffer to send:\n");
+        // for(j = 0; j < N; j++){
+        //     printf("out[%d] = %f\n", j, out[j]);
+        // }
         
-        printf("Sending fbuffer\n");
+        printf("Sending fft data\n");
         fprintf(stderr, "Sending data... ");
-        n = write(sockfd, out, hdr->ptsPerFFT * sizeof(double));
+        n = write(sockfd, out, N * sizeof(double));
         fprintf(stderr, "Sent data, n = %d\n", n);
         if (n < 0) 
              err("ERROR writing to socket");
