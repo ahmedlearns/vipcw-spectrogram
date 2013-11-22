@@ -15,7 +15,7 @@
 #define END_TRANS = 0xB58C982A
 // extern int endTrans = 0xB58C982A;
 
-struct fft_header{
+typedef struct fft_header_t {
 	int constSync;	// sync to next header
 	int bytesToNextHeader;	// total amount of space (header+data)
 	int samplesToNextFFT;	// Num samples to the start of the next FFT
@@ -24,4 +24,4 @@ struct fft_header{
 	int sampleRate;			// sampling frequency
 	int	fftRate;		// Number of FFT's per second
 	int endTrans;	// signal end of transmission (all data is sent)
-};
+} fft_header;

@@ -1,10 +1,10 @@
 CC=gcc
-CFLAGS=-lm
+CFLAGS=-lm -g
 DEP= monofft.c fft_sender.c fft.c
 
 all: $(DEP)
 	$(CC) $(DEP) $(CFLAGS) -o sender_child
-	$(CC) main.c -o sender
+	$(CC) $(CFLAGS) main.c -o sender
 
 cb: cb_test.c cb_main.c
 	$(CC) cb_test.c -o cb_child.out
