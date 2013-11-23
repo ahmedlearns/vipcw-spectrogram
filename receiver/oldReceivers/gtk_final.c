@@ -17,9 +17,11 @@
 #define REDMAC(x) (MIN((MAX((4*((x)-0.25)), 0.)), 1.) * 255)
 #define GREENMAC(x) (MIN((MAX((4*fabs((x)-0.5)-1.), 0.)), 1.) * 255)
 
+int debug = 0;
+
 GtkWidget *image;
 char buff[20];
-float *buffer;
+double *buffer;
 int samp_rate;
 int CAMERA_HEIGHT;
 int port_num;
@@ -27,8 +29,7 @@ int sockfd, newsockfd;
 socklen_t clilen;
 int n;
 struct sockaddr_in serv_addr, cli_addr;
-
-struct fft_header header;
+fft_header header;
 
 struct pixel
 {
@@ -40,7 +41,7 @@ struct pixel* rgbImage;
 
 void error1(const char *msg)
 {
-    fprintf(stderr, "%s: %s \n", msg, strerror(errno));
+    if(debug) fprintf(stderr, "%s: %s \n", msg, strerror(errno));
     exit(1);
 }
 
@@ -58,30 +59,37 @@ int shift()
 	int i, j;
 	//newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 	//if(1)
-	fprintf(stderr, "Reading header... ");
-	n = read(newsockfd, &header, sizeof(struct fft_header));
+	if(debug) fprintf(stderr, "Reading header... ");
+if(debug) printf("size of header is %d\n", sizeof(fft_header));
+	n = read(newsockfd, &header, sizeof(fft_header));
+if(debug) printf("\tRead header: %d bytes consumed\n", n);
 	if (n < 0)
 	    error1("ERROR reading from socket");
 	else if (n > 0)
 	{
-		printf("header.constSync is %X\n", header.constSync);
-		// printf("header_len is %d\n", sizeof(struct fft_header));
+	if(debug) printf("header.constSync is %X\n", header.constSync);
+		//if(debug)  printf("header_len is %d\n", sizeof(fft_header));
 		if(header.constSync != 0xACFDFFBC)
 			error1("ERROR reading from socket, incorrect header placement\n");
 	}
 	else if( n == 0)
 	{
-		printf("Sender has closed connection\n");
+		if(debug) printf("Sender has closed connection\n");
 		exit(0);
 	}
 
-	fprintf(stderr, "Reading data... ");
-	n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
+	if(debug) fprintf(stderr, "Reading data... ");
+	n = read(newsockfd, buffer, header.ptsPerFFT * sizeof(double));
 	if (n < 0)
 	    error1("ERROR reading from socket");
+	else if( n > 0)
+    {
+    	if(debug) printf("\tData read: %d bytes\n", n);
+    	printf("Receiving data.. buffer[255]: %f\n", buffer[255]);
+    }
 	else if( n == 0)
 	{
-		printf("Sender has closed connection\n");
+		if(debug) printf("Sender has closed connection\n");
 		exit(0);
 	}
 
@@ -104,9 +112,9 @@ int shift()
 	}
 	//count++;
 	
-	fprintf(stderr, "Loading image... ");
+	if(debug) fprintf(stderr, "Loading image... ");
 	loadImage();
-	fprintf(stderr, "Image loaded.\n");
+	if(debug) fprintf(stderr, "Image loaded.\n");
 	//usleep(10000);
 	return 1;
 }
@@ -144,37 +152,45 @@ int main(int argc, char *argv[])
     if (newsockfd < 0)
        error1("ERROR on accept");
 	//First Header
-    fprintf(stderr, "Reading header... ");  
-    n = read(newsockfd, &header, sizeof(struct fft_header));
+    if(debug) fprintf(stderr, "Reading header... ");
+	if(debug) printf("size of header is %d\n", sizeof(fft_header));
+	n = read(newsockfd, &header, sizeof(fft_header));
+	if(debug) printf("\tRead header: %d bytes consumed\n", n);
     if (n < 0)
        error1("ERROR reading from socket");
     else if (n > 0)
 	{
-		printf("header.constSync is %X\n", header.constSync);
-    	// printf("header_len is %d\n", sizeof(struct fft_header));
+	if(debug) printf("header.constSync is %X\n", header.constSync);
+    	//if(debug)  printf("header_len is %d\n", sizeof(fft_header));
 		if(header.constSync != 0xACFDFFBC)
 			error1("ERROR reading from socket, incorrect header placement\n");
 	}
 	else if( n == 0)
 	{
-		printf("Sender has closed connection\n");
+		if(debug) printf("Sender has closed connection\n");
 		exit(0);
 	}
 
 	//Initializing structures
 	samp_rate = header.ptsPerFFT;
+	//if(debug)  printf("N is %d\n\n", samp_rate);
 	CAMERA_HEIGHT = samp_rate;
 	rgbImage = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
-	buffer = malloc(sizeof(float) * samp_rate);
+	buffer = malloc(sizeof(double) * samp_rate);
 
 	//First Data
-	fprintf(stderr, "Reading data... ");
-    n = read(newsockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
+	if(debug) fprintf(stderr, "Reading data... ");
+    n = read(newsockfd, buffer, header.ptsPerFFT * sizeof(double));
     if (n < 0)
     	error1("ERROR reading from socket");
+    else if( n > 0)
+    {
+	    if(debug) printf("\tData read: %d bytes\n", n);
+	    printf("Receiving data.. buffer[255]: %f\n", buffer[255]);
+    }
 	else if( n == 0)
 	{
-		printf("Sender has closed connection\n");
+		if(debug) printf("Sender has closed connection\n");
 		exit(0);
 	}
 	
@@ -202,7 +218,7 @@ int main(int argc, char *argv[])
 	loadImage();
 	
 	//call shift every 1msec
-	gint func_ref = g_timeout_add(2000, shift, NULL);
+	gint func_ref = g_timeout_add(100, shift, NULL);
 	
 	gtk_main();
 	g_source_remove (func_ref);

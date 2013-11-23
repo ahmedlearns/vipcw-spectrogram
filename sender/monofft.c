@@ -20,7 +20,7 @@
 
 void genfft(int N, double* in, double* out)
 {
-    printf("IN: monofft:genFFT() \n");
+    // printf("IN: monofft:genFFT() \n");
 
     int i;
     double (*X)[2];                  /* pointer to frequency-domain samples */   
@@ -44,7 +44,7 @@ void genfft(int N, double* in, double* out)
         if(mag < min) 
             min = mag;
     }
-    printf("\t NO SEG FAULT YET\n");
+    // printf("\t NO SEG FAULT YET\n");
     
     for(i=0; i<N; i++) {
         mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
