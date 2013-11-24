@@ -154,9 +154,10 @@ int write_audio(char* host, int N)
     double dbuffer[N];
     double out[N];
 
-    int sockfd, portno, n;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;  
+    int sockfd, portno, n, newsockfd;
+    struct sockaddr_in serv_addr, cli_addr;
+    // struct hostent *server;  
+    socklen_t clilen;
 
     // if (argc < 2)
     // {
@@ -166,13 +167,22 @@ int write_audio(char* host, int N)
     portno = 51717;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
-        err("ERROR opening socket");
-    server = gethostbyname(host);
-    if (server == NULL) {
-        if(debug)fprintf(stderr,"ERROR, no such host\n");
-        exit(-1);
-    }
+        error1("ERROR opening socket");
+    //server = gethostbyname(argv[1]);
     bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+               error1("ERROR on binding");
+    listen(sockfd,5);
+    clilen = sizeof(cli_addr);
+        
+    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsockfd < 0)
+            error1("ERROR on accept");
+
+    /*bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr, 
          (char *)&serv_addr.sin_addr.s_addr,
@@ -181,7 +191,7 @@ int write_audio(char* host, int N)
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
         if(debug)fprintf(stderr, "Error on connect(): %s\n", strerror(errno));
         exit(-1);
-    }
+    }*/
 
     if(debug) printf("IN: fft_sender:write_audio(): sending data\n");
     while(1){
@@ -191,7 +201,7 @@ int write_audio(char* host, int N)
         get_samples(N, dbuffer);
 
         if(debug)fprintf(stderr, "Sending header... ");
-        n = write(sockfd, (char *) hdr, sizeof(fft_header));
+        n = write(newsockfd, (char *) hdr, sizeof(fft_header));
         if(debug)fprintf(stderr, "Sent header, n = %d\n", n);
         if (n < 0) 
              err("ERROR writing to socket");
@@ -208,7 +218,7 @@ int write_audio(char* host, int N)
 
         if(debug) printf("Sending fft data\n");
         // if(debug)fprintf(stderr, "Sending data... ");
-        n = write(sockfd, out, N * sizeof(double));
+        n = write(newsockfd, out, N * sizeof(double));
         if(debug) printf("Sent data, n = %d\n", n);
         if (n < 0) 
              err("ERROR writing to socket");
@@ -216,6 +226,7 @@ int write_audio(char* host, int N)
     }
 
     free(hdr);
+    close(newsockfd);
     close(sockfd);
 }
 
