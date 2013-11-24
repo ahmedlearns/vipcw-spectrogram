@@ -154,17 +154,19 @@ int write_audio(char* host, int N)
     double dbuffer[N];
     double out[N];
 
-    int sockfd, portno, n, newsockfd;
+    /*int sockfd, portno, n, newsockfd;
     struct sockaddr_in serv_addr, cli_addr;
     // struct hostent *server;  
-    socklen_t clilen;
+    socklen_t clilen;*/
 
     // if (argc < 2)
     // {
     //  if(debug)fprintf(stderr,"ERROR, no host provided\n");
     //  exit(1);
     // }
-    portno = 51717;
+    
+    // SERVER CODE
+    /*portno = 51717;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error1("ERROR opening socket");
@@ -180,7 +182,7 @@ int write_audio(char* host, int N)
         
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0)
-            error1("ERROR on accept");
+            error1("ERROR on accept");*/
 
     /*bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -192,6 +194,8 @@ int write_audio(char* host, int N)
         if(debug)fprintf(stderr, "Error on connect(): %s\n", strerror(errno));
         exit(-1);
     }*/
+
+    int newsockfd = atoi(argv[1]);
 
     if(debug) printf("IN: fft_sender:write_audio(): sending data\n");
     while(1){
