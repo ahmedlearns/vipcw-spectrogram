@@ -59,9 +59,9 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
     if(debug) printf("IN: fft_sender:init_fft()\n");
     hdr = (fft_header*) malloc(sizeof(fft_header));
     hdr->constSync = 0xACFDFFBC;
-    hdr->bytesToNextHeader = sizeof(float) * ptsPerFFT + sizeof(fft_header);
+	hdr->ptsPerFFT = ptsPerFFT/2 + 1;
+    hdr->bytesToNextHeader = sizeof(double) * (ptsPerFFT/2+1) + sizeof(fft_header);
     hdr->samplesToNextFFT = samplesToNextFFT;
-    hdr->ptsPerFFT = ptsPerFFT;
     //updateTime(timestamp);
     hdr->sampleRate = sampFreq;
     // -1 when ongoing, 1 to signal end of transmission
@@ -151,7 +151,7 @@ int write_audio(char* sockfd, int N)
     if(debug) printf("IN: fft_sender:write_audio(%s, %d)\n", sockfd, N);
 
     double dbuffer[N];
-    double out[N];
+    double out[N/2+1];
 
     /*int sockfd, portno, n, newsockfd;
     struct sockaddr_in serv_addr, cli_addr;
@@ -217,11 +217,11 @@ int write_audio(char* sockfd, int N)
         //    if(debug) printf("out[%d] = %f\n", j, out[j]);
         // }
         
-        printf("Sending data.. out[255]: %f\n", out[255]);
+        // printf("Sending data.. out[255]: %f\n", out[255]);
 
         if(debug) printf("Sending fft data\n");
         // if(debug)fprintf(stderr, "Sending data... ");
-        n = write(newsockfd, out, N * sizeof(double));
+        n = write(newsockfd, out, (N/2+1) * sizeof(double));
         if(debug) printf("Sent data, n = %d\n", n);
         if (n < 0) 
              err("ERROR writing to socket");
