@@ -20,7 +20,7 @@
 
 GtkWidget *image;
 char buff[20];
-float *buffer;
+double *buffer;
 int samp_rate;
 int CAMERA_WIDTH;
 int port_num;
@@ -83,7 +83,7 @@ int getData()
 
 		//put data into a buffer
 		for( i = 0 ; i < samp_rate; i++)
-			buffer[i] = ((float*)(tempBuf + sizeof(struct fft_header)))[i];
+			buffer[i] = ((double*)(tempBuf + sizeof(struct fft_header)))[i];
 		fprintf(stderr, "Reading data... ");
 
 		//shift
@@ -171,6 +171,9 @@ int main(int argc, char *argv[])
 	{
 		printf("Sender has closed connection1\n");
 		exit(0);
+	} else if( n > 0)
+	{
+		printf("Read %d bytes from header, header.constSync is %X\n", n, header.constSync);	
 	}
 	do
 	{
@@ -233,21 +236,25 @@ int main(int argc, char *argv[])
 	CAMERA_WIDTH = samp_rate;
 	rgbImage = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
 	rgbImageTemp = malloc(sizeof(struct pixel) * (CAMERA_HEIGHT*CAMERA_WIDTH));
-	buffer = malloc(sizeof(float) * samp_rate);
-	bufSize = sizeof(float)* samp_rate;
-	length = (sizeof(struct fft_header) + sizeof(float)* samp_rate);
+	buffer = malloc(sizeof(double) * samp_rate);
+	bufSize = sizeof(double)* samp_rate;
+	length = (sizeof(struct fft_header) + sizeof(double)* samp_rate);
 	size =  length* 2 + 1;
 	tempBuf = malloc(length);
 
 	//First Data
 	fprintf(stderr, "Reading data... ");
-    	n = read(sockfd, (char *) buffer, header.ptsPerFFT * sizeof(float));
-    	if (n < 0)
-    		error1("ERROR reading from socket");
+    	n = read(sockfd, (char *) buffer, header.ptsPerFFT * sizeof(double));
+	if (n < 0)
+		error1("ERROR reading from socket");
 	else if( n == 0)
 	{
 		printf("Sender has closed connection\n");
 		exit(0);
+	}
+	else 
+	{
+		printf("Read %d bytes data\n", n);
 	}
 	
 	/*End*/

@@ -27,7 +27,7 @@
 
 #define WAV_HEADER_SIZE 48  
 
-int debug = 0;
+int debug = 1;
 
 fft_header* hdr; 
 
@@ -115,14 +115,14 @@ void get_samples(int N, double* dbuffer)
         int endTrans = 5;
 
         init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampleRate, fftRate, endTrans);
-       if(debug) printf("\t Back in get_samples() from init_fft()\n");
+      	if(debug) printf("\t Back in get_samples() from init_fft()\n");
         // sleep(1);
         init_samples = 1;
-
+	
+		if(debug) printf("IN: fft_sender:get_samples(%d), AFTER DISCARDING WAVE HEADER\n", N);
         // free(wav_header);
     }
 
-    if(debug) printf("IN: fft_sender:get_samples(%d), AFTER DISCARDING WAVE HEADER\n", N);
     int i = 0, j;
     long long int n;
     int2 discard_sample;
@@ -147,9 +147,9 @@ void get_samples(int N, double* dbuffer)
     }
 }
 
-int write_audio(char* host, int N)
+int write_audio(char* sockfd, int N)
 {
-    if(debug) printf("IN: fft_sender:write_audio(%s, %d)\n", host, N);
+    if(debug) printf("IN: fft_sender:write_audio(%s, %d)\n", sockfd, N);
 
     double dbuffer[N];
     double out[N];
@@ -195,7 +195,7 @@ int write_audio(char* host, int N)
         exit(-1);
     }*/
 
-    int newsockfd = atoi(argv[1]);
+    int n, newsockfd = atoi(sockfd);
 
     if(debug) printf("IN: fft_sender:write_audio(): sending data\n");
     while(1){
@@ -231,6 +231,6 @@ int write_audio(char* host, int N)
 
     free(hdr);
     close(newsockfd);
-    close(sockfd);
+    // close(sockfd);
 }
 

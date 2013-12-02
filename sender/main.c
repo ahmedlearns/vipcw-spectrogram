@@ -6,6 +6,18 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <error.h>
+#include <errno.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <fcntl.h>
+
+#include "fft_sender.h"
 
 /* 
  * Need to make two binaries in the make file: sender & sender_child.
@@ -28,14 +40,14 @@ void start_audio(int newsockfd)
     char syscall[512];
     // sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | tee sender.wav | ./sender_child %s", serverIP);
     // sprintf(syscall, "arecord -f S16_LE -r22050 -D hw:CARD=AudioPCI | ./sender_child %s", serverIP);
-    sprintf(syscall, "arecord -f S16_LE -r22050 -D hw:CARD=AudioPCI | ./sender_child %d", newsockfd);
+    sprintf(syscall, "arecord -f S16_LE -r22050 -D front:CARD=Snowflake | ./sender_child %d", newsockfd);
     system(syscall);
 }
 
 
 int main(int argc, char *argv[])
 {
-    printf("IN: main:main(%s)\n", argv[1]);
+    printf("IN: main:main()\n");
 
     int sockfd, portno, n, newsockfd;
     struct sockaddr_in serv_addr, cli_addr;
@@ -50,20 +62,23 @@ int main(int argc, char *argv[])
     portno = 51717;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
-        error1("ERROR opening socket");
+       err("ERROR opening socket");
     //server = gethostbyname(argv[1]);
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-               error1("ERROR on binding");
+               err("ERROR on binding");
+	printf("Listening for connections..\n");
     listen(sockfd,5);
     clilen = sizeof(cli_addr);
         
+	printf("Accepting connection..\n");
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+	printf("Accepted a connection..\n");
     if (newsockfd < 0)
-            error1("ERROR on accept");
+            err("ERROR on accept");
     else 
         start_audio(newsockfd);
         

@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-lm -g
-DEP= monofft.c fft_sender.c fft.c
+CFLAGS=-lfftw3 -lm -g 
+DEP= monofft.c fft_sender.c 
 
 all: $(DEP)
 	$(CC) $(DEP) $(CFLAGS) -o sender_child
