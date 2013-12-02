@@ -105,11 +105,10 @@ void get_samples(int N, double* dbuffer)
             //if(debug) printf("Read %d bytes into wav_header\n", n);
             err("Error discarding Wave header");
         }
-
-        int bytesToNextHeader = N * sizeof(double) + sizeof(fft_header);  // total amount of space (header+data)
+	int ptsPerFFT = N;         // number of points per FFT 
+        int bytesToNextHeader = ptsPerFFT * sizeof(double) + sizeof(fft_header);  // total amount of space (header+data)
         // int sampleRate = wav_header->sampleRate;
         int sampleRate = 22050;
-        int ptsPerFFT = N;         // number of points per FFT 
         int fftRate = 10;       // 10 FFT's per second.
         int samplesToNextFFT = (sampleRate / fftRate) - ptsPerFFT;   // Num samples to the start of the next FFT
         int endTrans = 5;
