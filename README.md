@@ -79,3 +79,38 @@ You should now have a few new files in the directory, namely
 
 The values in birdfft.txt should already be normalized. These are then passed to the video display.
 
+###Server###
+
+
+The server allows data from a single sender Raspberry Pi to be sent to multiple receivers.
+
+
+To run:
+
+
+Change current directory to Server
+
+Type make in console. A file called rec should appear.
+
+Type ifconfig to get IP address of computer hosting the server
+
+On Sender Raspberry Pi:
+
+Change current directory to vipcw-spectrogram/sender and type make in console
+A file named sender should appear
+
+Type ifconfig in console to get sender IP address
+
+Type ./sender to run sender
+
+On Computer running server
+
+Type ./rec <SENDER IP ADDRESS>
+
+Receiver:-
+
+Go to vipcw-spectrogram/receiver and type make
+
+Run using ./receiver <SERVER IP ADDRESS>
+
+
