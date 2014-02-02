@@ -6,6 +6,15 @@
  * Author: Ahmed Ismail
  */
 
+/* Default Values */
+#define DEFAULT_D "default"; 
+#define DEFAULT_P 51717;
+#define DEFAULT_R 22050;
+#define DEFAULT_S 256;
+#define DEFAULT_F 10;
+#define DEFAULT_T 0.75;
+#define DEFAULT_W 0.99; 
+
  /* Circular buffer object */
 typedef struct {
     int         size;   /* maximum number of elements           */

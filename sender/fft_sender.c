@@ -39,11 +39,51 @@ void err(const char *msg)
 
 int main(int argc, char *argv[])
 {
+    int opt;
+    char* d = DEFAULT_D;
+    int p = DEFAULT_P;
+    int r = DEFAULT_R;
+    int s = DEFAULT_S;
+    int f = DEFAULT_F;
+    double t = DEFAULT_T;
+    double w = DEFAULT_W;
+    char* sockfd;
+
+    /* Read arguments */ 
+    while(-1 != (opt = getopt(argc, argv, "d:p:r:s:f:t:w:n"))) {
+        switch(opt) {
+        case 'd':
+            d = optarg;
+            break;
+        case 'p':
+            p = atoi(optarg);
+            break;
+        case 'r':
+            r = atoi(optarg);
+            break;
+        case 's':
+            s = atoi(optarg);
+            break;
+        case 'f':
+            f = atoi(optarg);
+            break;
+        case 't':
+            t = atof(optarg);
+            break;
+        case 'w':
+            w = atof(optarg);
+            break;
+        case 'n':
+            sockfd = atoi(optarg);
+            break;
+        }
+    }
 
     if(debug) printf("IN: fft_sender:main()\n");
-    // int n = Write(get_samples(256), argv[1]);
-    if(!write_audio(argv[1], 256));
-        if(debug)fprintf(stderr, "ERROR, write failed\n");
+
+    if(!write_audio(sockfd, s));
+        fprintf(stderr, "ERROR, write failed\n");
+
     return 0;
 }
 
