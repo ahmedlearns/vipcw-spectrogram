@@ -186,53 +186,12 @@ void get_samples(int N, double* dbuffer)
     }
 }
 
-int write_audio(char* sockfd, int N)
+int write_audio(char* sockfd, char* d, int p, int r, int N, int f, double t, double w)
 {
     if(debug) printf("IN: fft_sender:write_audio(%s, %d)\n", sockfd, N);
 
     double dbuffer[N];
     double out[N/2+1];
-
-    /*int sockfd, portno, n, newsockfd;
-    struct sockaddr_in serv_addr, cli_addr;
-    // struct hostent *server;  
-    socklen_t clilen;*/
-
-    // if (argc < 2)
-    // {
-    //  if(debug)fprintf(stderr,"ERROR, no host provided\n");
-    //  exit(1);
-    // }
-    
-    // SERVER CODE
-    /*portno = 51717;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
-        error1("ERROR opening socket");
-    //server = gethostbyname(argv[1]);
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(portno);
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-               error1("ERROR on binding");
-    listen(sockfd,5);
-    clilen = sizeof(cli_addr);
-        
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsockfd < 0)
-            error1("ERROR on accept");*/
-
-    /*bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
-         (char *)&serv_addr.sin_addr.s_addr,
-         server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
-        if(debug)fprintf(stderr, "Error on connect(): %s\n", strerror(errno));
-        exit(-1);
-    }*/
 
     int n, newsockfd = atoi(sockfd);
 
