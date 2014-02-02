@@ -2,7 +2,12 @@
  * main.c 
  * 
  * Author: Ahmed Ismail
- *-----------------------------------------------------------------*/
+ *
+ * Need to make two binaries in the make file: sender & sender_child.
+ *  sender will be the main entry point (this main file) and 
+ *  sender_child will be the main in fft_sender.
+ *
+ ------------------------------------------------------------------*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,35 +24,87 @@
 
 #include "fft_sender.h"
 
-/* 
- * Need to make two binaries in the make file: sender & sender_child.
- *  sender will be the main entry point (this main file) and 
- *  sender_child will be the main in fft_sender.
-*/
+ int debug = 0;
 
-// void start_audio(char* serverIP)
+void print_help_and_exit(void) {
+    printf("sender [OPTIONS]\n");
+    printf("  -d device\t\tInput Device ('arecord -L')\tDefault: default\n");
+    printf("  -p portno\t\tDestination Port Number\t\tDefault: 51717\n");
+    printf("  -r sampFreq\t\tRecording Sampling Rate\t\tDefault: 22050 Hz\n");
+    printf("  -s ptsPerFFT\t\tNo. of points per FFT\t\tDefault: 256\n");
+    printf("  -f fftFreq\t\tNo. of FFT's per second\t\tDefault: 10\n");
+    printf("  -t agc_target\t\tTarget FFT Amplitude [0-1]\tDefault: 0.75\n");    
+    printf("  -w agc_weight\t\tWeight of prev. AGC input [0-1]\tDefault: 0.99\n");
+    printf("  -h\t\t\tThis helpful output\n");
+    exit(0);
+}
 
-/**
- *  Initiate audio recording and pass needed socket information.
- *
- *
- */
-void start_audio(int newsockfd)
+/* Initiate audio recording and pass needed socket information. */
+void start_audio(int newsockfd, char* d, int p, int r, int s, int f, double t, double w)
 {   
     printf("IN: main:start_audio()\n");
 
     /* Execute arecord to start recording from the make with the separate-channels option */
     char syscall[512];
-    // sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | tee sender.wav | ./sender_child %s", serverIP);
-    // sprintf(syscall, "arecord -f S16_LE -r22050 -D hw:CARD=AudioPCI | ./sender_child %s", serverIP);
-    sprintf(syscall, "arecord -f S16_LE -r22050 -D front:CARD=Snowflake | ./sender_child %d", newsockfd);
+    sprintf(syscall, "arecord -f S16_LE -r%d -D %s | ./sender_child -r %d -s %d -f %d -t %f -w %f -n %d", r, d, r, s, f, t, w, newsockfd);
     system(syscall);
 }
 
 
 int main(int argc, char *argv[])
 {
-    printf("IN: main:main()\n");
+    if(debug)
+        printf("IN: main:main()\n");
+
+    int opt;
+    char* d = DEFAULT_D;
+    int p = DEFAULT_P;
+    int r = DEFAULT_R;
+    int s = DEFAULT_S;
+    int f = DEFAULT_F;
+    double t = DEFAULT_T;
+    double w = DEFAULT_W;
+
+    /* Read arguments */ 
+    while(-1 != (opt = getopt(argc, argv, "d:p:r:s:f:t:w:h"))) {
+        switch(opt) {
+        case 'd':
+            d = optarg;
+            break;
+        case 'p':
+            p = atoi(optarg);
+            break;
+        case 'r':
+            r = atoi(optarg);
+            break;
+        case 's':
+            s = atoi(optarg);
+            break;
+        case 'f':
+            f = atoi(optarg);
+            break;
+        case 't':
+            t = atof(optarg);
+            break;
+        case 'w':
+            w = atof(optarg);
+            break;
+        case 'h':
+            /* Fall through */
+        default:
+            print_help_and_exit();
+            break;
+        }
+    }
+
+    printf("Source Settings\n");
+    printf("d: %s\n", d);
+    printf("p: %d\n", p);
+    printf("r: %d\n", r);
+    printf("f: %d\n", f);
+    printf("t: %.3f\n", t);
+    printf("w: %.3f\n", w);
+    printf("\n");
 
     int sockfd, portno, n, newsockfd;
     struct sockaddr_in serv_addr, cli_addr;
@@ -80,7 +137,7 @@ int main(int argc, char *argv[])
     if (newsockfd < 0)
             err("ERROR on accept");
     else 
-        start_audio(newsockfd);
+        start_audio(newsockfd, d, p, r, s, f, t, w);
         
     // if (argc < 2)
  //    {
