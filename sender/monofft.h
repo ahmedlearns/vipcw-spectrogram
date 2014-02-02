@@ -23,4 +23,4 @@ typedef struct wave {
         // int data[(lSize-40)/4];
 } wave;
 
-void genfft(int, double*, double*);
+void genfft(int, double*, double*, int, int);

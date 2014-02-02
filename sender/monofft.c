@@ -27,7 +27,7 @@ float hamWindow_Multiplier;
 static double old_an[257][2];
 
 
-void fftw3 ( int N, double (*x)[2], double (*X)[2]) //, double old_an[N/2+1][2])
+void fftw3 ( int N, double (*x)[2], double (*X)[2], double t, double w) //, double old_an[N/2+1][2])
 {
   int i;
   double *in;
@@ -106,7 +106,7 @@ double weightFactor = 0.9;
 /******************************************************************************/
 
 
-void genfft(int N, double* in, double* out)
+void genfft(int N, double* in, double* out, double t, double w)
 {
     // printf("IN: monofft:genFFT() \n");
 
@@ -121,7 +121,7 @@ void genfft(int N, double* in, double* out)
         x[i][1] = 0;
     }
     
-    fftw3(N, x, X); // , old_an);
+    fftw3(N, x, X, t, w); // , old_an);
 	// fft(N, x, X);
     min = 0;
     max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
