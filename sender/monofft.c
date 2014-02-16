@@ -27,7 +27,7 @@ float hamWindow_Multiplier;
 static double old_an[257][2];
 
 
-void fftw3 ( int N, double (*x)[2], double (*X)[2], double t, double w) //, double old_an[N/2+1][2])
+void fftw3 ( int N, double (*x)[2], double (*X)[2]) //, double old_an[N/2+1][2])
 {
   int i;
   double *in;
@@ -68,27 +68,33 @@ void fftw3 ( int N, double (*x)[2], double (*X)[2], double t, double w) //, doub
   fftw_execute ( plan_forward );
 
 /* AUTOMATIC GAIN COMPUTATION */
-double mag=0.0;
-double newMag=0.0;
+
+double weight = 0.99;
+
+double mag = 0.0;
+double newMag = 0.0;
+double prevMag = 0.0;
 
 // After this loop below, maximum magnitude of previous data set is found
-/*
+
 for ( i = 0; i < nc; i++ )
   {
-   newMag= (double)sqrt(((old_an[i][0])*(old_an[i][0])) + ((old_an[i][1])*(old_an[i][1])));
-    if(mag<newMag)
-        mag=newMag;        // new maximum magnitude
+   newMag = (double)sqrt(((out[i][0])*(out[i][0])) + ((out[i][1])*(out[i][1])));
+    if(mag < newMag)
+        mag = newMag;        // new maximum magnitude
    }
-*/
-double maxFFT= mag;
-double scale = 1/maxFFT;        // scaleFactorNew =1/maxFFTofnew 
-double weightFactor = 0.9;
+
+// double maxFFT= mag;
+double target = 0.75;
+double scale = target/mag;
+// double scale = 1/maxFFT;        // scaleFactorNew =1/maxFFTofnew 
+double weightFactor = 0.99;
 
 /* Saving fftw3 output coefficient into X and old_an */
  for ( i = 0; i < nc; i++ )
   {
-     // old_an[i][0] = (double)((weightFactor) * out[i][0]  + ((1-weightFactor)*scale));
-     // old_an[i][1] = (double)((weightFactor) * out[i][1]  + ((1-weightFactor)*scale));
+     old_an[i][0] = (double)((weightFactor) * out[i][0]  + ((1-weightFactor)*scale));
+     old_an[i][1] = (double)((weightFactor) * out[i][1]  + ((1-weightFactor)*scale));
      X[i][0] = out[i][0];        
      X[i][1] = out[i][1];
   }
@@ -106,7 +112,7 @@ double weightFactor = 0.9;
 /******************************************************************************/
 
 
-void genfft(int N, double* in, double* out, double t, double w)
+void genfft(int N, double* in, double* out)
 {
     // printf("IN: monofft:genFFT() \n");
 
@@ -121,7 +127,7 @@ void genfft(int N, double* in, double* out, double t, double w)
         x[i][1] = 0;
     }
     
-    fftw3(N, x, X, t, w); // , old_an);
+    fftw3(N, x, X); // , old_an);
 	// fft(N, x, X);
     min = 0;
     max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );

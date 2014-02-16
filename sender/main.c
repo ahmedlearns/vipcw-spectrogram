@@ -2,12 +2,7 @@
  * main.c 
  * 
  * Author: Ahmed Ismail
- *
- * Need to make two binaries in the make file: sender & sender_child.
- *  sender will be the main entry point (this main file) and 
- *  sender_child will be the main in fft_sender.
- *
- ------------------------------------------------------------------*/
+ *-----------------------------------------------------------------*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,7 +19,37 @@
 
 #include "fft_sender.h"
 
- int debug = 0;
+int debug = 1;
+
+const char* DEFAULT_D = "default";
+
+/* 
+ * Need to make two binaries in the make file: sender & sender_child.
+ *  sender will be the main entry point (this main file) and 
+ *  sender_child will be the main in fft_sender.
+*/
+
+// void start_audio(char* serverIP)
+
+/**
+ *  Initiate audio recording and pass needed socket information.
+ *
+ *
+ */
+void start_audio(int newsockfd, char* d, int r, int s, int f, double t, double w)
+{   
+    printf("IN: main:start_audio()\n");
+
+    printf("n: %d\n", newsockfd);
+
+    /* Execute arecord to start recording from the make with the separate-channels option */
+    char syscall[512];
+    // sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | tee sender.wav | ./sender_child %s", serverIP);
+    // sprintf(syscall, "arecord -f S16_LE -r22050 -D hw:CARD=AudioPCI | ./sender_child %s", serverIP);
+    sprintf(syscall, "arecord -f S16_LE -r%d -D %s | ./sender_child -s %d -f %d -n %d", r, d, s, f, newsockfd);
+    system(syscall);
+}
+
 
 void print_help_and_exit(void) {
     printf("sender [OPTIONS]\n");
@@ -39,16 +64,6 @@ void print_help_and_exit(void) {
     exit(0);
 }
 
-/* Initiate audio recording and pass needed socket information. */
-void start_audio(int newsockfd, char* d, int p, int r, int s, int f, double t, double w)
-{   
-    printf("IN: main:start_audio()\n");
-
-    /* Execute arecord to start recording from the make with the separate-channels option */
-    char syscall[512];
-    sprintf(syscall, "arecord -f S16_LE -r%d -D %s | ./sender_child -r %d -s %d -f %d -t %f -w %f -n %d", r, d, r, s, f, t, w, newsockfd);
-    system(syscall);
-}
 
 
 int main(int argc, char *argv[])
@@ -108,15 +123,9 @@ int main(int argc, char *argv[])
 
     int sockfd, portno, n, newsockfd;
     struct sockaddr_in serv_addr, cli_addr;
-    // struct hostent *server;  
     socklen_t clilen;
-
-    // if (argc < 2)
-    // {
-    //  if(debug)fprintf(stderr,"ERROR, no host provided\n");
-    //  exit(1);
-    // }
-    portno = 51717;
+    // portno = 51717;
+    portno = p;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
        err("ERROR opening socket");
@@ -137,13 +146,7 @@ int main(int argc, char *argv[])
     if (newsockfd < 0)
             err("ERROR on accept");
     else 
-        start_audio(newsockfd, d, p, r, s, f, t, w);
-        
-    // if (argc < 2)
- //    {
- //        fprintf(stderr,"ERROR, no host provided\n");
- //        exit(1);
- //    }
+        start_audio(newsockfd, d, r, s, f, t, w);
 
 
 }
