@@ -27,7 +27,7 @@ float hamWindow_Multiplier;
 static double old_an[257][2];
 
 
-void fftw3 ( int N, double (*x)[2], double (*X)[2]) //, double old_an[N/2+1][2])
+void fftw3 ( int N, double (*x)[2], double* output) //double (*X)[2]) //, double old_an[N/2+1][2])
 {
   int i;
   double *in;
@@ -69,35 +69,60 @@ void fftw3 ( int N, double (*x)[2], double (*X)[2]) //, double old_an[N/2+1][2])
 
 /* AUTOMATIC GAIN COMPUTATION */
 
-double weight = 0.99;
-
-double mag = 0.0;
-double newMag = 0.0;
-double prevMag = 0.0;
-
-// After this loop below, maximum magnitude of previous data set is found
-
-for ( i = 0; i < nc; i++ )
-  {
-   newMag = (double)sqrt(((out[i][0])*(out[i][0])) + ((out[i][1])*(out[i][1])));
-    if(mag < newMag)
-        mag = newMag;        // new maximum magnitude
-   }
-
-// double maxFFT= mag;
+double avg, scale;
+double prev_avg = 0.75;
 double target = 0.75;
-double scale = target/mag;
-// double scale = 1/maxFFT;        // scaleFactorNew =1/maxFFTofnew 
-double weightFactor = 0.99;
+double weight = 0.99;
+double mag, min, max, mag_norm;
 
-/* Saving fftw3 output coefficient into X and old_an */
- for ( i = 0; i < nc; i++ )
-  {
-     old_an[i][0] = (double)((weightFactor) * out[i][0]  + ((1-weightFactor)*scale));
-     old_an[i][1] = (double)((weightFactor) * out[i][1]  + ((1-weightFactor)*scale));
-     X[i][0] = out[i][0];        
-     X[i][1] = out[i][1];
-  }
+
+/**
+ * When the output of the fft is normalized before the scale is applied, the scale turns out to be very large, the mag_norm always very small (around .001-.002), and 
+ *  so the output comes out to always be 0.75. (normalization then scale)
+ *
+ * When the the scale was applied before the normalization. The scale would be found using the magnitude of each FFT point, and would the output would then be
+ *  the scaled version of both the real and imaginary version. Before the output is sent to the display, it is first normalized. (scale the real and imag then normalize)
+ */
+
+/* First normalize the output */
+min = 0;
+max = sqrt( (out[0][0] * out[0][0]) + (out[0][1] * out[0][1]) );
+
+for(i=0; i < N; i++) {
+    mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
+    if(mag > max) 
+        max = mag;
+    if(mag < min) 
+        min = mag;
+}
+// printf("\t NO SEG FAULT YET\n");
+
+for(i=0; i < nc; i++) {
+    mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
+    mag_norm = (mag - min)/(max - min);
+    
+    avg = (double) (weight * prev_avg + (1 - weight) * mag_norm);
+    printf("avg: %.3f\t prev_avg: %.3f\t mag_norm: %.3f\n", avg, prev_avg, mag_norm);
+    prev_avg = avg;
+
+    scale = target/mag_norm;
+    printf("scale: %.3f\n", scale);
+    output[i] = mag_norm * scale;        
+    // output[i][1] = out[i] * scale;
+    printf("output[%d] = %.3f\n", i, output[i]);
+
+    // output[i] = mag_norm;
+    // printf("out[%d] = %.3f\t", i, out[i]);
+    // if(i%4 == 0) printf("\n");
+}
+
+/* Saving fftw3 output coefficient into X, scaled using AGC */
+// for ( i = 0; i < nc; i++ ){
+//     // mag = (double)sqrt(((out[i][0])*(out[i][0])) + ((out[i][1])*(out[i][1])));
+    
+//     // if(mag < newMag)
+//     //     mag = newMag;        // new maximum magnitude
+// }
 
 
 /*
@@ -117,36 +142,39 @@ void genfft(int N, double* in, double* out)
     // printf("IN: monofft:genFFT() \n");
 
     int i;
-    double (*X)[2];                  /* pointer to frequency-domain samples */   
+    // double (*X)[2];                  /* pointer to frequency-domain samples */   
     double x[N][2];             
-    double mag, min, max, mag_norm;                 
-    X = (double*) malloc(2 * N * sizeof(double));
+    // double mag, min, max, mag_norm;                 
+    // X = (double*) malloc(2 * N * sizeof(double));
 
+    /* initialize input for FFT */
     for(i = 0; i < N; i++){
         x[i][0] = in[i];
         x[i][1] = 0;
     }
     
-    fftw3(N, x, X); // , old_an);
+    fftw3(N, x, out); // , old_an);
 	// fft(N, x, X);
-    min = 0;
-    max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
+    // min = 0;
+    // max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
 
-    for(i=0; i < N; i++) {
-        mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
-        if(mag > max) 
-            max = mag;
-        if(mag < min) 
-            min = mag;
-    }
-    // printf("\t NO SEG FAULT YET\n");
+    // for(i=0; i < N; i++) {
+    //     mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
+    //     if(mag > max) 
+    //         max = mag;
+    //     if(mag < min) 
+    //         min = mag;
+    // }
+    // // printf("\t NO SEG FAULT YET\n");
     
-    for(i=0; i<N; i++) {
-        mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
-        mag_norm = (mag - min)/(max - min);
-        out[i] = mag_norm;
-    }
+    // for(i=0; i<N; i++) {
+    //     mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
+    //     mag_norm = (mag - min)/(max - min);
+    //     out[i] = mag_norm;
+    //     // printf("out[%d] = %.3f\t", i, out[i]);
+    //     // if(i%4 == 0) printf("\n");
+    // }
 
-    free(X);
+    // free(X);
     return;
 }
