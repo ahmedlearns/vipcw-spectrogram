@@ -99,7 +99,7 @@ for(i=0; i < N; i++) {
 
 for(i=0; i < nc; i++) {
     mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
-    // mag_norm = (mag - min)/(max - min);
+    mag_norm = (mag - min)/(max - min);
     
     avg = (double) (weight * prev_avg + (1 - weight) * max);
     printf("avg: %.3f\t prev_avg: %.3f\t max: %.3f\n", avg, prev_avg, max);
@@ -107,7 +107,8 @@ for(i=0; i < nc; i++) {
 
     scale = target/avg;
     printf("scale: %.3f\n", scale);
-    output[i] = mag * scale;        
+    //~ output[i] = mag_norm * scale;        
+    output[i] = mag * scale;
     // output[i][1] = out[i] * scale;
     printf("output[%d] = %.3f\n", i, output[i]);
 
@@ -143,8 +144,8 @@ void genfft(int N, double* in, double* out)
 
     int i;
     // double (*X)[2];                  /* pointer to frequency-domain samples */   
-    double x[N][2];
-    double *X;            
+    double X[N/2 + 1];
+    double x[N][2];             
     // double mag, min, max, mag_norm;                 
     // X = (double*) malloc(2 * N * sizeof(double));
 
@@ -156,10 +157,9 @@ void genfft(int N, double* in, double* out)
     
     fftw3(N, x, X); // , old_an);
 	// fft(N, x, X);
-    // min = 0;
-    // max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
-
-    for(i=0; i < N; i++) {
+    min = 0;
+    max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );
+	for(i=0; i < N; i++) {
         mag=sqrt((X[i][0]*X[i][0])+(X[i][1]*X[i][1]));
         if(mag > max) 
             max = mag;
