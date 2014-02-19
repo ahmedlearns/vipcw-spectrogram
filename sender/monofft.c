@@ -105,7 +105,7 @@ for(i=0; i < nc; i++) {
     printf("avg: %.3f\t prev_avg: %.3f\t mag_norm: %.3f\n", avg, prev_avg, mag_norm);
     prev_avg = avg;
 
-    scale = target/mag_norm;
+    scale = target/avg;
     printf("scale: %.3f\n", scale);
     output[i] = mag_norm * scale;        
     // output[i][1] = out[i] * scale;
