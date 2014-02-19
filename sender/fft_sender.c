@@ -27,7 +27,7 @@
 
 #define WAV_HEADER_SIZE 48  
 
-int debug = 1;
+int debug = 0;
 
 fft_header* hdr; 
 
@@ -141,7 +141,7 @@ void get_samples(int N, double* dbuffer, int fftRate)
     static int init_samples = 0;
     if(!init_samples)
     {
-        sleep(1);
+        sleep(2);
 
         char wav_header[48];
         // wave* wav_header = (wave*) malloc(sizeof(wave));
