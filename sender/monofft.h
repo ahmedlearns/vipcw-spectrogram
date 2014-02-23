@@ -2,7 +2,7 @@
  * monofft.h
  */
 
- #include <fftw3.h>
+#include <fftw3.h>
 
 typedef short signed int int2;
 
@@ -25,4 +25,5 @@ typedef struct wave {
         // int data[(lSize-40)/4];
 } wave;
 
-void genfft(int, double*, double*);
+void agc(double target, double weight, fftw_complex* out, double* output);
+void genfft(int, double*, double*, double, double, char);
