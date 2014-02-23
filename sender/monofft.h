@@ -2,6 +2,8 @@
  * monofft.h
  */
 
+ #include <fftw3.h>
+
 typedef short signed int int2;
 
 typedef struct wave {

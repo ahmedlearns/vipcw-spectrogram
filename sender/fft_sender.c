@@ -159,7 +159,7 @@ void get_samples(int N, double* dbuffer, int fftRate)
             //if(debug) printf("Read %d bytes into wav_header\n", n);
             err("Error discarding Wave header");
         }
-	int ptsPerFFT = N;         // number of points per FFT 
+        int ptsPerFFT = N;         // number of points per FFT 
         int bytesToNextHeader = ptsPerFFT * sizeof(double) + sizeof(fft_header);  // total amount of space (header+data)
         // int sampleRate = wav_header->sampleRate;
         int sampleRate = 22050;
@@ -168,11 +168,11 @@ void get_samples(int N, double* dbuffer, int fftRate)
         int endTrans = 5;
 
         init_fft(bytesToNextHeader, samplesToNextFFT, ptsPerFFT, sampleRate, fftRate, endTrans);
-      	if(debug) printf("\t Back in get_samples() from init_fft()\n");
+        	if(debug) printf("\t Back in get_samples() from init_fft()\n");
         // sleep(1);
         init_samples = 1;
-	
-		if(debug) printf("IN: fft_sender:get_samples(%d), AFTER DISCARDING WAVE HEADER\n", N);
+
+        if(debug) printf("IN: fft_sender:get_samples(%d), AFTER DISCARDING WAVE HEADER\n", N);
         // free(wav_header);
     }
 
@@ -215,7 +215,7 @@ int write_audio(int newsockfd, int N, int fftRate, double target, double weight,
         get_samples(N, dbuffer, fftRate);
 
         if(debug)fprintf(stderr, "Sending header... ");
-        n = write(newsockfd, (char *) hdr, sizeof(fft_header));
+        int n = write(newsockfd, (char *) hdr, sizeof(fft_header));
         if(debug)fprintf(stderr, "Sent header, n = %d\n", n);
         if (n < 0) 
              err("ERROR writing to socket");
