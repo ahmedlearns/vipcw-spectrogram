@@ -13,6 +13,7 @@
 #define DEFAULT_F 10;
 #define DEFAULT_T 0.75;
 #define DEFAULT_W 0.99; 
+#define DEFAULT_A 0;
 
  /* Circular buffer object */
 typedef struct {
@@ -45,3 +46,5 @@ void init_fft(int, int, int, int, int, int);
 void err(const char*);
 
 int discard_wav_header();
+
+int write_audio(int newsockfd, int N, int fftRate, double target, double weight, char agc_off);

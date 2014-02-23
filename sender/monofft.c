@@ -165,7 +165,7 @@ void genfft(int N, double* in, double* out)
         x[i][1] = 0;
     }
     
-    fftw3(N, x, X); // , old_an);
+    fftw3(N, X, target, weight, agc_off, x); // , old_an);
 	// fft(N, x, X);
     // min = 0;
     // max = sqrt( (X[0][0] * X[0][0]) + (X[0][1] * X[0][1]) );

@@ -50,10 +50,11 @@ int main(int argc, char *argv[])
     int f = DEFAULT_F;
     double t = DEFAULT_T;
     double w = DEFAULT_W;
+    char a = DEFAULT_A;
     int n;
 
     /* Read arguments */ 
-    while(-1 != (opt = getopt(argc, argv, "r:s:f:t:w:n:h"))) {
+    while(-1 != (opt = getopt(argc, argv, "r:s:f:a:t:w:n:h"))) {
         switch(opt) {
             case 'r':
                 r = atoi(optarg);
@@ -63,6 +64,9 @@ int main(int argc, char *argv[])
                 break;
             case 'f':
                 f = atoi(optarg);
+                break;
+            case 'a':
+                a = atoi(optarg);
                 break;
             case 't':
                 t = atof(optarg);
@@ -87,11 +91,12 @@ int main(int argc, char *argv[])
     printf("s: %d\n", f);
     printf("f: %d\n", f);
     printf("n: %d\n", n);
+    printf("a: %d\n", a);
     printf("t: %.3f\n", t);
     printf("w: %.3f\n", w);
     printf("\n");
 
-    if(!write_audio(n, s, f));
+    if(!write_audio(n, s, f, t, w, a));
         if(debug)fprintf(stderr, "ERROR, write failed\n");
     return 0;
 }
@@ -195,14 +200,12 @@ void get_samples(int N, double* dbuffer, int fftRate)
     }
 }
 
-int write_audio(int newsockfd, int N, int fftRate)
+int write_audio(int newsockfd, int N, int fftRate, double target, double weight, char agc_off)
 {
     if(debug) printf("IN: fft_sender:write_audio(%d, %d)\n", newsockfd, N);
 
     double dbuffer[N];
     double out[N/2+1];
-
-    int n;
 
     if(debug) printf("IN: fft_sender:write_audio(): sending data\n");
     while(1){
@@ -217,7 +220,7 @@ int write_audio(int newsockfd, int N, int fftRate)
         if (n < 0) 
              err("ERROR writing to socket");
         
-        genfft(N, dbuffer, out);
+        genfft(N, dbuffer, out, target, weight, agc_off);
 
         // int j;
         //if(debug) printf("Output buffer to send:\n");

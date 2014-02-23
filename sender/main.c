@@ -36,7 +36,7 @@ const char* DEFAULT_D = "default";
  *
  *
  */
-void start_audio(int newsockfd, char* d, int r, int s, int f, double t, double w)
+void start_audio(int newsockfd, char* d, int r, int s, int f, char a, double t, double w)
 {   
     printf("IN: main:start_audio()\n");
 
@@ -46,20 +46,21 @@ void start_audio(int newsockfd, char* d, int r, int s, int f, double t, double w
     char syscall[512];
     // sprintf(syscall, "arecord -f S16_LE -r44100 -D plughw:CARD=Snowflake | tee sender.wav | ./sender_child %s", serverIP);
     // sprintf(syscall, "arecord -f S16_LE -r22050 -D hw:CARD=AudioPCI | ./sender_child %s", serverIP);
-    sprintf(syscall, "arecord -f S16_LE -r%d -D %s | ./sender_child -s %d -f %d -n %d", r, d, s, f, newsockfd);
+    sprintf(syscall, "arecord -f S16_LE -r%d -D %s | ./sender_child -s %d -f %d -n %d -a %d -t %f -w %f", r, d, s, f, newsockfd, a, t, w);
     system(syscall);
 }
 
 
 void print_help_and_exit(void) {
     printf("sender [OPTIONS]\n");
-    printf("  -d device\t\tInput Device ('arecord -L')\tDefault: default\n");
-    printf("  -p portno\t\tDestination Port Number\t\tDefault: 51717\n");
-    printf("  -r sampFreq\t\tRecording Sampling Rate\t\tDefault: 22050 Hz\n");
-    printf("  -s ptsPerFFT\t\tNo. of points per FFT\t\tDefault: 256\n");
-    printf("  -f fftFreq\t\tNo. of FFT's per second\t\tDefault: 10\n");
-    printf("  -t agc_target\t\tTarget FFT Amplitude [0-1]\tDefault: 0.75\n");    
-    printf("  -w agc_weight\t\tWeight of prev. AGC input [0-1]\tDefault: 0.99\n");
+    printf("  -d [device]\t\tInput Device ('arecord -L')\tDefault: default\n");
+    printf("  -p [portno]\t\tDestination Port Number\t\tDefault: 51717\n");
+    printf("  -r [sampFreq]\t\tRecording Sampling Rate\t\tDefault: 22050 Hz\n");
+    printf("  -s [ptsPerFFT]\tNo. of points per FFT\t\tDefault: 256\n");
+    printf("  -f [fftFreq]\t\tNo. of FFT's per second\t\tDefault: 10\n");
+    printf("  -a \t\t\tTurn On or Off AGC\t\tDefault: On\n");
+    printf("  -t [agc_target]\tTarget FFT Amplitude [0-1]\tDefault: 0.75\n");    
+    printf("  -w [agc_weight]\tWeight of prev. AGC input [0-1]\tDefault: 0.99\n");
     printf("  -h\t\t\tThis helpful output\n");
     exit(0);
 }
@@ -79,9 +80,10 @@ int main(int argc, char *argv[])
     int f = DEFAULT_F;
     double t = DEFAULT_T;
     double w = DEFAULT_W;
+    char a = DEFAULT_A;
 
     /* Read arguments */ 
-    while(-1 != (opt = getopt(argc, argv, "d:p:r:s:f:t:w:h"))) {
+    while(-1 != (opt = getopt(argc, argv, "d:p:r:s:f:at:w:h"))) {
         switch(opt) {
         case 'd':
             d = optarg;
@@ -97,6 +99,9 @@ int main(int argc, char *argv[])
             break;
         case 'f':
             f = atoi(optarg);
+            break;
+        case 'a':
+            a = 1;
             break;
         case 't':
             t = atof(optarg);
@@ -117,6 +122,7 @@ int main(int argc, char *argv[])
     printf("p: %d\n", p);
     printf("r: %d\n", r);
     printf("f: %d\n", f);
+    printf("a: %d\n", a);
     printf("t: %.3f\n", t);
     printf("w: %.3f\n", w);
     printf("\n");
@@ -146,7 +152,7 @@ int main(int argc, char *argv[])
     if (newsockfd < 0)
             err("ERROR on accept");
     else 
-        start_audio(newsockfd, d, r, s, f, t, w);
+        start_audio(newsockfd, d, r, s, f, a, t, w);
 
 
 }
