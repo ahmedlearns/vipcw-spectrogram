@@ -81,7 +81,7 @@ void fftw3 (int N, double* output, double target, double weight, char agc_off, d
 
     for(i=0; i < nc; i++) {
         mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
-        printf("mag[%d] is %.3f\n", i, mag);
+        // printf("mag[%d] is %.3f\n", i, mag);
         if(mag > max) {
             max = mag;
         	imax = i;
