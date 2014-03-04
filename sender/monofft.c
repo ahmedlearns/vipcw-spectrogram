@@ -65,9 +65,13 @@ void fftw3 (int N, double* output, double target, double weight, char agc_off, d
     fftw_execute ( plan_forward );
 
     /* AUTOMATIC GAIN COMPUTATION */
-    if(!agc_off)
+    if(!agc_off){
         agc(*params, out, output);
-    
+    } else {
+        for(i=0; i < params->nc; i++) {
+            output[i] = sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
+        }
+    }
 
 
     /*
