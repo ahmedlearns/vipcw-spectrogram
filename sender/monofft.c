@@ -15,12 +15,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-    
 #include <fftw3.h>
-// #include "fft.h"
 
-#include "fft_sender.h" 
-// #include "fftw3.h"
+#include "fft_sender.h"
+#include "monofft.h"    
 
 /********************** Global Variable ***************************************/
 float hamWindow_Multiplier;
@@ -33,10 +31,16 @@ void fftw3 (int N, double* output, double target, double weight, char agc_off, d
     int i;
     double *in;
     double *in2;
-    int nc;
+    int nc = ( N / 2 ) + 1;
     fftw_complex *out;
     fftw_plan plan_backward;
     fftw_plan plan_forward;
+
+    struct agc_params* params;
+    params = (struct agc_params*) malloc(sizeof(struct agc_params));
+    params->nc = nc;
+    params->target = target; 
+    params->weight = weight;
 
     /*
         Set up an array to hold the data, and assign the data.
@@ -56,51 +60,15 @@ void fftw3 (int N, double* output, double target, double weight, char agc_off, d
         get a "plan", and execute the plan to transform the IN data to
         the OUT FFT coefficients.
     */
-    nc = ( N / 2 ) + 1;
     out = fftw_malloc ( sizeof ( fftw_complex ) * nc );
     plan_forward = fftw_plan_dft_r2c_1d ( N, in, out, FFTW_ESTIMATE );
     fftw_execute ( plan_forward );
 
     /* AUTOMATIC GAIN COMPUTATION */
+    if(!agc_off)
+        agc(*params, out, output);
+    
 
-    double avg, scale;
-    double scaled_target;// = 0.75;
-    // double weight = 0.9;
-    double mag, min, max, mag_norm;
-    int imax;
-
-    /**
-    * When the output of the fft is normalized before the scale is applied, the scale turns out to be very large, the mag_norm always very small (around .001-.002), and 
-    *  so the output comes out to always be 0.75. (normalization then scale)
-    *
-    * When the the scale was applied before the normalization. The scale would be found using the magnitude of each FFT point, and would the output would then be
-    *  the scaled version of both the real and imaginary version. Before the output is sent to the display, it is first normalized. (scale the real and imag then normalize)
-    */
-    max = 0; //sqrt( (out[0][0] * out[0][0]) + (out[0][1] * out[0][1]) );
-    imax = -1;
-
-    for(i=0; i < nc; i++) {
-        mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
-        // printf("mag[%d] is %.3f\n", i, mag);
-        if(mag > max) {
-            max = mag;
-        	imax = i;
-        }
-    }
-
-    scaled_target = target * max;
-
-    avg = (double) (weight * prev_avg + (1.0 - weight) * max);
-    printf("avg, %.3f, prev_avg, %.3f, max, %.3f, imax, %d, ", avg, prev_avg, max, imax);
-    prev_avg = avg;
-
-    scale = scaled_target/avg;
-    printf("scale, %.3f\n", scale);
-
-    for(i=0; i < nc; i++) {
-        mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
-        output[i] = mag * scale;
-    }
 
     /*
         Release the memory associated with the plans.
@@ -113,8 +81,47 @@ void fftw3 (int N, double* output, double target, double weight, char agc_off, d
 }
 /******************************************************************************/
 
-void agc(double target, double weight, fftw_complex* out, double* output)
-{}
+void agc(struct agc_params params, fftw_complex* out, double* output)
+{
+    // printf("agc_params=> weight: %f\ttarget:%f\n", params.weight, params.target);
+    double avg, scale;
+    double scaled_target;
+    double mag, min, max, mag_norm;
+    int i, imax;
+
+    /**
+    * When the output of the fft is normalized before the scale is applied, the scale turns out to be very large, the mag_norm always very small (around .001-.002), and 
+    *  so the output comes out to always be 0.75. (normalization then scale)
+    *
+    * When the the scale was applied before the normalization. The scale would be found using the magnitude of each FFT point, and would the output would then be
+    *  the scaled version of both the real and imaginary version. Before the output is sent to the display, it is first normalized. (scale the real and imag then normalize)
+    */
+    max = 0; 
+    imax = -1;
+
+    for(i=0; i < params.nc; i++) {
+        mag = sqrt((out[i][0]*out[i][0]) + (out[i][1]*out[i][1]));
+        // printf("mag[%d] is %.3f\n", i, mag);
+        if(mag > max) {
+            max = mag;
+            imax = i;
+        }
+    }
+
+    scaled_target = params.target * max;
+
+    avg = (double) (params.weight * prev_avg + (1.0 - params.weight) * max);
+    printf("avg, %.3f, prev_avg, %.3f, max, %.3f, imax, %d, ", avg, prev_avg, max, imax);
+    prev_avg = avg;
+
+    scale = scaled_target/avg;
+    printf("scale, %.3f\n", scale);
+
+    for(i=0; i < params.nc; i++) {
+        mag=sqrt((out[i][0]*out[i][0])+(out[i][1]*out[i][1]));
+        output[i] = mag * scale;
+    }
+}
 
 void genfft(int N, double* in, double* out, double target, double weight, char agc_off)
 {

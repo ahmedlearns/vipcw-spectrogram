@@ -21,7 +21,7 @@
 
 int debug = 1;
 
-const char* DEFAULT_D = "default";
+char* DEFAULT_D = "default";
 
 /* 
  * Need to make two binaries in the make file: sender & sender_child.
@@ -58,7 +58,7 @@ void print_help_and_exit(void) {
     printf("  -r [sampFreq]\t\tRecording Sampling Rate\t\tDefault: 22050 Hz\n");
     printf("  -s [ptsPerFFT]\tNo. of points per FFT\t\tDefault: 256\n");
     printf("  -f [fftFreq]\t\tNo. of FFT's per second\t\tDefault: 10\n");
-    printf("  -a \t\t\tTurn On or Off AGC\t\tDefault: On\n");
+    printf("  -a \t\t\tTurn Off AGC\t\tDefault: On\n");
     printf("  -t [agc_target]\tTarget FFT Amplitude [0-1]\tDefault: 0.75\n");    
     printf("  -w [agc_weight]\tWeight of prev. AGC input [0-1]\tDefault: 0.99\n");
     printf("  -h\t\t\tThis helpful output\n");
