@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
     printf("d: %s\n", d);
     printf("p: %d\n", p);
     printf("r: %d\n", r);
+    printf("s: %d\n", s);
     printf("f: %d\n", f);
     printf("a: %d\n", a);
     printf("t: %.3f\n", t);
