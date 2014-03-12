@@ -27,7 +27,7 @@
 
 #define WAV_HEADER_SIZE 48  
 
-int debug = 0;
+int debug = 1;
 
 fft_header* hdr; 
 
@@ -44,6 +44,7 @@ void print_help_and_exit(void) {
 
 int main(int argc, char *argv[])
 {
+
     int opt;
     int r = DEFAULT_R;
     int s = DEFAULT_S;
@@ -51,10 +52,11 @@ int main(int argc, char *argv[])
     double t = DEFAULT_T;
     double w = DEFAULT_W;
     char a = DEFAULT_A;
+    char c = DEFAULT_C;
     int n;
 
     /* Read arguments */ 
-    while(-1 != (opt = getopt(argc, argv, "r:s:f:a:t:w:n:h"))) {
+    while(-1 != (opt = getopt(argc, argv, "r:s:f:a:t:w:n:c:h"))) {
         switch(opt) {
             case 'r':
                 r = atoi(optarg);
@@ -67,6 +69,9 @@ int main(int argc, char *argv[])
                 break;
             case 'a':
                 a = atoi(optarg);
+                break;
+            case 'c':
+                c = atoi(optarg);
                 break;
             case 't':
                 t = atof(optarg);
@@ -85,6 +90,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    if(debug)
+        printf("IN: fft_sender:main()\n");
+
     if(debug) printf("IN: fft_sender:main()\n");
     printf("Source_Sender Settings\n");
     printf("r: %d\n", r);
@@ -96,7 +104,7 @@ int main(int argc, char *argv[])
     printf("w: %.3f\n", w);
     printf("\n");
 
-    if(!write_audio(n, s, f, t, w, a));
+    if(!write_audio(n, s, f, t, w, a, c));
         if(debug)fprintf(stderr, "ERROR, write failed\n");
     return 0;
 }
@@ -138,7 +146,7 @@ void init_fft(int bytesToNextHeader, int samplesToNextFFT, int ptsPerFFT,
  *      Use char's to only read left channel data.
  *
  */
-void get_samples(int N, double* dbuffer, int fftRate)
+void get_samples(int N, double* dbuffer, int fftRate, char channel)
 {
 
     if(debug) printf("IN: fft_sender:get_samples(%d)\n", N);
@@ -192,6 +200,7 @@ void get_samples(int N, double* dbuffer, int fftRate)
     for(j = 0; j < (N*2); j++){
         if(sizeof(char) == read(fileno(stdin), &channel_sample, sizeof(char))){
             // Only read in left channel data..
+            // if((j & 1) != channel)
             if((j & 1) != 1)
                 dbuffer[i++] = channel_sample;            
         } else {
@@ -200,7 +209,10 @@ void get_samples(int N, double* dbuffer, int fftRate)
     }
 }
 
-int write_audio(int newsockfd, int N, int fftRate, double target, double weight, char agc_off)
+/**
+ * Channel: 1 = left, 0 = right
+ */
+int write_audio(int newsockfd, int N, int fftRate, double target, double weight, char agc_off, char channel)
 {
     if(debug) printf("IN: fft_sender:write_audio(%d, %d)\n", newsockfd, N);
 
@@ -212,7 +224,7 @@ int write_audio(int newsockfd, int N, int fftRate, double target, double weight,
 
         //if(debug) printf("IN: fft_sender:write_audio(): getting %d samples..\n", N);
         
-        get_samples(N, dbuffer, fftRate);
+        get_samples(N, dbuffer, fftRate, channel);
 
         if(debug)fprintf(stderr, "Sending header... ");
         int n = write(newsockfd, (char *) hdr, sizeof(fft_header));
